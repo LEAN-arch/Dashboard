@@ -59,8 +59,12 @@ with st.sidebar:
         ['NOM-035', 'Calidad', 'Productividad', 'Bienestar', 'LEAN'],
         default=['NOM-035', 'Calidad']
     )
-    if st.button("🔄 Actualizar"):
-        st.experimental_rerun()
+actualizar = st.button("🔄 Actualizar")
+
+# Main code continues and optionally checks this:
+if actualizar:
+    st.toast("Actualizando datos...", icon="🔄")
+    st.experimental_rerun()
 
 # ---- ENCABEZADO ----
 st.markdown(f"""
