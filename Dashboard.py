@@ -4,9 +4,9 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from datetime import date, datetime, timedelta
-from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 import warnings
+
 warnings.filterwarnings('ignore')
 
 # ========== INITIALIZATION ==========
@@ -124,14 +124,7 @@ class DataService:
     DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
     
     @staticmethod
-    @st.cache_data(
-        ttl=600,
-        show_spinner="Cargando datos...",
-        hash_funcs={
-            pd.DataFrame: lambda x: pd.util.hash_pandas_object(x).sum(),
-            datetime.date: lambda x: x.isoformat()
-        }
-    )
+    @st.cache_data(ttl=600, show_spinner="Cargando datos...")
     def load_data():
         np.random.seed(42)
         
