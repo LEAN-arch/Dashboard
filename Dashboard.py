@@ -272,7 +272,7 @@ class KPICard:
             """, unsafe_allow_html=True)
             
         if help_text:
-        with st.tooltip(help_text):
+            with st.tooltip(help_text):
              st.markdown("ℹ️", unsafe_allow_html=True)
 
 class DataVisualizer:
