@@ -365,7 +365,7 @@ class DataVisualizer:
 class NOMLEANDashboard:
     def __init__(self):
         class NOMLEANDashboard:
-    def __init__(self):
+        def __init__(self):
         self.load_data()
         self.initialize_session_state()
         self.initialize_sidebar()
