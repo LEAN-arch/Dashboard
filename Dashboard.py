@@ -754,7 +754,7 @@ for metric in metrics:
         st.plotly_chart(fig_radar, use_container_width=True)
             
             # Projects summary
-            with st.expander("📌 Detalle de Proyectos", expanded=True):
+        with st.expander("📌 Detalle de Proyectos", expanded=True):
                 st.dataframe(
                     filtered_lean[['Departamento', 'Proyectos Activos', '5S_Score', 'SMED']]
                     .set_index('Departamento')
