@@ -51,7 +51,7 @@ with st.sidebar:
     fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
     departamentos_filtro = st.multiselect(
         "Seleccionar Departamentos",
-        options=nom_df['Departamento'].unique().tolist(),
+        options=nom_data['Departamento'].unique().tolist(),
         default=['Producción', 'Calidad', 'Logística']
     )
     metricas = st.multiselect(
@@ -59,7 +59,14 @@ with st.sidebar:
         ['NOM-035', 'Calidad', 'Productividad', 'Bienestar', 'LEAN'],
         default=['NOM-035', 'Calidad']
     )
-actualizar = st.button("🔄 Actualizar")
+
+    # Add space and refresh button at bottom
+    st.markdown("---")
+    actualizar = st.button("🔄 Actualizar")
+
+if actualizar:
+    st.toast("Datos actualizados", icon="🔁")
+    st.experimental_rerun()
 
 # Main code continues and optionally checks this:
 if actualizar:
