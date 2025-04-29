@@ -811,6 +811,30 @@ def render_wellbeing_tab(self):
     except Exception as e:
         st.error(f"Error al renderizar la pestaña de Bienestar: {str(e)}")
         st.error("Por favor verifique los datos y filtros aplicados")
+        
+        with wellbeing_view2:
+            # Correlation analysis
+            corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas']].corr()
+            fig_corr = px.imshow(
+                corr_matrix,
+                text_auto=True,
+                color_continuous_scale='RdYlGn',
+                range_color=[-1, 1],
+                labels=dict(x="Métrica", y="Métrica", color="Correlación"),
+                height=400
+            )
+            fig_corr.update_layout(
+                title="Matriz de Correlación",
+                xaxis_title="",
+                yaxis_title="",
+                margin=dict(l=50, r=50, t=50, b=50),
+                font=dict(family=ds.FONT)
+            )
+            st.plotly_chart(fig_corr, use_container_width=True)
+            
+    except Exception as e:
+        st.error(f"Error al renderizar la pestaña de Bienestar: {str(e)}")
+        st.error("Por favor verifique los datos y filtros aplicados")
     
     with wellbeing_view2:
         # Correlation analysis
