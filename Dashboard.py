@@ -212,21 +212,21 @@ class KPICard:
             delta = value - target
             percentage = min(100, (value / target * 100)) if target != 0 else 0
         
-        if value >= target:
-            status = "✅"
-            color = ds.COLORS['success']
-            delta_text = f"+{delta:.1f}% sobre meta"
-            icon_bg = "rgba(16, 185, 129, 0.1)"
-        elif value >= target - 10:
-            status = "⚠️"
-            color = ds.COLORS['warning']
-            delta_text = f"{delta:.1f}% bajo meta"
-            icon_bg = "rgba(245, 158, 11, 0.1)"
-        else:
-            status = "❌"
-            color = ds.COLORS['danger']
-            delta_text = f"{delta:.1f}% bajo meta"
-            icon_bg = "rgba(239, 68, 68, 0.1)"
+            if value >= target:
+                status = "✅"
+                color = ds.COLORS['success']
+                delta_text = f"+{delta:.1f}% sobre meta"
+                icon_bg = "rgba(16, 185, 129, 0.1)"
+            elif value >= target - 10:
+                status = "⚠️"
+                color = ds.COLORS['warning']
+                delta_text = f"{delta:.1f}% bajo meta"
+                icon_bg = "rgba(245, 158, 11, 0.1)"
+            else:
+                status = "❌"
+                color = ds.COLORS['danger']
+                delta_text = f"{delta:.1f}% bajo meta"
+                icon_bg = "rgba(239, 68, 68, 0.1)"
         
         with st.container():
             card_content = f"""
