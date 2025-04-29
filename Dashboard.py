@@ -584,7 +584,7 @@ class NOMLEANDashboard:
             <p style="color: #9ca3af;">Pruebe con otros filtros o fechas</p>
             </div>
             """, unsafe_allow_html=True)
-                return
+            return
         
         # Create tabs for different views
         nom_view1, nom_view2, nom_view3 = st.tabs(["Métricas Principales", "Mapa de Riesgo", "Análisis de Tendencia"])
