@@ -203,14 +203,14 @@ class DataService:
 # ========== COMPONENTS ==========
 class KPICard:
     @staticmethod
-def render(value, title, target, icon="📊", help_text=None):
-    try:
-        # Ensure value and target are numeric
-        value = float(value)
-        target = float(target)
+    def render(value, title, target, icon="📊", help_text=None):
+        try:
+            # Ensure value and target are numeric
+            value = float(value)
+            target = float(target)
         
-        delta = value - target
-        percentage = min(100, (value / target * 100)) if target != 0 else 0
+            delta = value - target
+            percentage = min(100, (value / target * 100)) if target != 0 else 0
         
         if value >= target:
             status = "✅"
