@@ -364,6 +364,38 @@ class DataVisualizer:
 # ========== APPLICATION ==========
 class NOMLEANDashboard:
     def __init__(self):
+        class NOMLEANDashboard:
+    def __init__(self):
+        self.load_data()
+        self.initialize_session_state()
+        self.initialize_sidebar()
+        self.render_header()
+        self.render_kpis()
+        self.render_main_content()
+    
+    def initialize_session_state(self):
+        """Initialize session state variables"""
+        if 'action_plans' not in st.session_state:
+            st.session_state.action_plans = self.action_plans_df.copy()
+    
+    def load_data(self):
+        """Load and cache data"""
+        self.nom_df, self.lean_df, self.bienestar_df, self.action_plans_df = DataService.load_data()
+        
+        # Set default dates if not in session state
+        if 'start_date' not in st.session_state:
+            st.session_state.start_date = date(2024, 1, 1)
+        if 'end_date' not in st.session_state:
+            st.session_state.end_date = date(2024, 4, 1)
+        if 'departments_filter' not in st.session_state:
+            st.session_state.departments_filter = ['Producción', 'Calidad', 'Logística']
+    
+    def save_action_plan(self, new_plan):
+        """Save new action plan to session state"""
+        updated_plans = pd.concat([st.session_state.action_plans, new_plan], ignore_index=True)
+        st.session_state.action_plans = updated_plans
+        st.toast("✅ Plan de acción registrado correctamente", icon="✅")
+        st.rerun()
         self.nom_df, self.lean_df, self.bienestar_df, self.action_plans_df = DataService.load_data()
         self.start_date = date(2024, 1, 1)
         self.end_date = date(2024, 4, 1)
