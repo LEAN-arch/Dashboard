@@ -203,7 +203,7 @@ class DataService:
 # ========== COMPONENTS ==========
 class KPICard:
     @staticmethod
-def render(value, title, target, icon="📊", help_text=None):
+    def render(value, title, target, icon="📊", help_text=None):
     delta = value - target
     percentage = min(100, (value / target * 100)) if target != 0 else 0
     
