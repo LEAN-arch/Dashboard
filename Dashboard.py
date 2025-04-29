@@ -577,15 +577,14 @@ class NOMLEANDashboard:
         if filtered_nom.empty:
             col1, col2, col3 = st.columns([1, 3, 1])
         with col2:
-        st.image("https://via.placeholder.com/300x150?text=No+Data+Available", width=300)
-        st.markdown("""
-        <div style="text-align: center; margin-top: 1rem;">
+            st.image("https://via.placeholder.com/300x150?text=No+Data+Available", width=300)
+            st.markdown("""
+            <div style="text-align: center; margin-top: 1rem;">
             <h4 style="color: #6b7280;">No hay datos disponibles</h4>
             <p style="color: #9ca3af;">Pruebe con otros filtros o fechas</p>
-        </div>
-        """, unsafe_allow_html=True)
-    return
-            return
+            </div>
+            """, unsafe_allow_html=True)
+                return
         
         # Create tabs for different views
         nom_view1, nom_view2, nom_view3 = st.tabs(["Métricas Principales", "Mapa de Riesgo", "Análisis de Tendencia"])
