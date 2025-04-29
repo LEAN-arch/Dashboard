@@ -12,6 +12,8 @@ st.set_page_config(
     layout="wide",
     page_icon="📊"
 )
+# Load data before anything else
+nom_data, lean_data, bienestar_data = cargar_datos()
 
 # ---- CARGA DE DATOS ----
 @st.cache_data(ttl=600)
@@ -67,6 +69,15 @@ with st.sidebar:
 if actualizar:
     st.toast("Datos actualizados", icon="🔁")
     st.experimental_rerun()
+with st.sidebar:
+    st.title("Filtros Avanzados")
+    fecha_inicio = st.date_input("Fecha de inicio", value=date(2025, 1, 1))
+    fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
+    departamentos_filtro = st.multiselect(
+        "Seleccionar Departamentos",
+        options=nom_data['Departamento'].unique().tolist(),
+        default=['Producción', 'Calidad', 'Logística']
+    )
 
 
 # ---- ENCABEZADO ----
