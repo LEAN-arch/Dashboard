@@ -2,7 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-from datetime import date
+import plotly.graph_objects as go
+import datetime  # Importación de datetime completa
+from sklearn.linear_model import LinearRegression
 
 # ---- CONFIGURACIÓN GENERAL ----
 st.set_page_config(
@@ -15,6 +17,7 @@ st.set_page_config(
 @st.cache_data(ttl=600)
 def cargar_datos():
     departamentos = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
+
     nom = pd.DataFrame({
         'Departamento': departamentos,
         'Evaluaciones': np.random.randint(70, 100, 7),
@@ -22,41 +25,48 @@ def cargar_datos():
         'Incidentes': np.random.randint(0, 10, 7),
         'Tendencia': np.round(np.random.normal(0.5, 1.5, 7), 2)
     })
+
     lean = pd.DataFrame({
         'Departamento': departamentos,
         'Eficiencia': np.random.randint(60, 95, 7),
         'Reducción Desperdicio': np.random.randint(5, 25, 7),
         'Proyectos Activos': np.random.randint(1, 6, 7)
     })
+
     bienestar = pd.DataFrame({
         'Mes': pd.date_range(start='2024-01-01', periods=12, freq='M'),
         'Índice Bienestar': np.round(np.random.normal(75, 5, 12), 1),
         'Ausentismo': np.round(np.random.normal(8, 2, 12), 1),
         'Rotación': np.round(np.random.normal(12, 3, 12), 1)
     })
+
     return nom, lean, bienestar
+
+nom_df, lean_df, bienestar_df = cargar_datos()
 
 # ---- SIDEBAR ----
 with st.sidebar:
     st.title("Filtros Avanzados")
-    fecha_inicio = st.date_input("Fecha de inicio", value=date(2025, 1, 1))
-    fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
-
-    # Cargar datos
-    nom_df, lean_df, bienestar_df = cargar_datos()
-
+    fecha_inicio = st.date_input("Fecha de inicio", value=datetime.date(2025, 1, 1))  # Usar datetime.date
+    fecha_fin = st.date_input("Fecha de fin", value=datetime.date(2025, 4, 1))  # Usar datetime.date
     departamentos_filtro = st.multiselect(
         "Seleccionar Departamentos",
         options=nom_df['Departamento'].unique().tolist(),
         default=['Producción', 'Calidad', 'Logística']
     )
+    metricas = st.multiselect(
+        "Seleccionar Métricas",
+        ['NOM-035', 'Calidad', 'Productividad', 'Bienestar', 'LEAN'],
+        default=['NOM-035', 'Calidad']
+    )
 
+    # Add space and refresh button at bottom
     st.markdown("---")
-    if st.button("🔄 Actualizar"):
-        st.toast("Datos actualizados", icon="🔁")
-        st.cache_data.clear()  # Limpiar el caché
-        st.experimental_rerun()  # Rerun limpio con nuevos datos
+    actualizar = st.button("🔄 Actualizar")
 
+if actualizar:
+    st.toast("Datos actualizados", icon="🔁")
+    st.experimental_rerun()
 
 # ---- ENCABEZADO ----
 st.markdown(f"""
@@ -64,7 +74,7 @@ st.markdown(f"""
         <h1 style='margin-bottom: 0;'>📈 Sistema Integral NOM-035 & LEAN 2.0</h1>
         <p style='margin-top: 0; color: gray;'>Monitoreo Estratégico de Bienestar Psicosocial y Eficiencia Operacional</p>
     </div>
-    <div style='text-align: right; color: #888; font-size:0.85rem;'>Última actualización: {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
+    <div style='text-align: right; color: #888; font-size:0.85rem;'>Última actualización: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}</div>
     <hr style='margin-top: 0.5rem;'>
 """, unsafe_allow_html=True)
 
@@ -178,7 +188,5 @@ with col2:
 # ---- PIE DE PÁGINA ----
 st.markdown("""
 <hr>
-<div style='text-align:center; color:gray; font-size:0.85rem;'>
-    © 2025 Sistema NOM-035 + LEAN 2.0 • 📧 contacto@lean2institute.org • 📞 Soporte: (663) 558-2452
-</div>
+<div style='text-align:center; color:gray; font-size:0.85rem;'>Sistema Integral NOM-035 & LEAN 2.0</div>
 """, unsafe_allow_html=True)
