@@ -5,7 +5,6 @@ import plotly.graph_objects as go
 import numpy as np
 from datetime import datetime, date
 from typing import Tuple
-
 # -----------------------------
 # CONFIGURACIÓN DE PÁGINA
 # -----------------------------
