@@ -2,166 +2,239 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, date
 import numpy as np
 
-# --- CONFIGURACIÓN DE PÁGINA ---
+# -----------------------------
+# CONFIGURACIÓN DE LA PÁGINA
+# -----------------------------
 st.set_page_config(
     page_title="Sistema Integral NOM-035 & LEAN 2.0",
     layout="wide",
     page_icon="📊"
 )
 
-# --- ESTILOS PERSONALIZADOS ---
-st.markdown("""
-<style>
-    .main { background-color: #f9f9f9; }
-    .kpi-card { border-radius: 10px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.3s; }
-    .kpi-card:hover { transform: translateY(-5px); }
-    .kpi-good { background: linear-gradient(135deg, #4CAF50, #81C784); color: white; }
-    .kpi-warning { background: linear-gradient(135deg, #FFC107, #FFD54F); color: #333; }
-    .kpi-danger { background: linear-gradient(135deg, #F44336, #E57373); color: white; }
-</style>
-""", unsafe_allow_html=True)
-
-# --- FUNCIONES AUXILIARES ---
+# -----------------------------
+# CARGA DE DATOS (MODULAR Y REALISTA)
+# -----------------------------
 @st.cache_data
 
 def cargar_datos():
     departamentos = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
-    nom = pd.DataFrame({
+
+    nom_df = pd.DataFrame({
         'Departamento': departamentos,
-        'Evaluaciones': np.random.randint(65, 100, len(departamentos)),
-        'Capacitaciones': np.random.randint(60, 100, len(departamentos)),
-        'Incidentes': np.random.randint(0, 10, len(departamentos)),
-        'Tendencia': np.random.uniform(-3, 2, len(departamentos)).round(1)
+        'Evaluaciones': np.random.randint(70, 100, size=7),
+        'Capacitaciones': np.random.randint(60, 100, size=7),
+        'Incidentes': np.random.randint(0, 10, size=7),
+        'Tendencia': np.round(np.random.normal(0.5, 1.5, size=7), 2)
     })
-    lean = pd.DataFrame({
+
+    lean_df = pd.DataFrame({
         'Departamento': departamentos,
-        'Eficiencia': np.random.randint(60, 95, len(departamentos)),
-        'Reducción Desperdicio': np.random.randint(5, 30, len(departamentos)),
-        'Proyectos Activos': np.random.randint(1, 6, len(departamentos))
+        'Eficiencia': np.random.randint(60, 95, size=7),
+        'Reducción Desperdicio': np.random.randint(5, 25, size=7),
+        'Proyectos Activos': np.random.randint(1, 6, size=7)
     })
-    bienestar = pd.DataFrame({
+
+    bienestar_df = pd.DataFrame({
         'Mes': pd.date_range(start='2024-01-01', periods=12, freq='M'),
         'Índice Bienestar': np.round(np.random.normal(75, 5, 12), 1),
         'Ausentismo': np.round(np.random.normal(8, 2, 12), 1),
         'Rotación': np.round(np.random.normal(12, 3, 12), 1)
     })
-    return nom, lean, bienestar
 
-def crear_kpi(valor, titulo, meta=90, icono="📊"):
-    delta = valor - meta
-    status = "good" if valor >= meta else "warning" if valor >= meta - 15 else "danger"
-    return f"""
-    <div class="kpi-card kpi-{status}">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0;">{icono} {titulo}</h3>
-            <span style="font-size:1.2rem; font-weight:bold;">{valor}% ({delta:+})</span>
-        </div>
-        <div style="margin-top:10px; height:6px; background:rgba(255,255,255,0.3); border-radius:3px;">
-            <div style="width:{valor}%; height:6px; background:white; border-radius:3px;"></div>
-        </div>
-        <p style="margin:5px 0 0 0; font-size:0.8rem;">Meta: {meta}%</p>
-    </div>
-    """
+    return nom_df, lean_df, bienestar_df
 
-# --- INTERFAZ ---
-col1, col2 = st.columns([1, 5])
-with col1:
-    st.image("logo_empresa.png", width=100)
-with col2:
-    st.markdown("<h1 style='margin-bottom:0;'>📈 Sistema Integral NOM-035 & LEAN 2.0</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #4a6fa5;'>Monitoreo de Bienestar Psicosocial y Eficiencia Operacional</p>", unsafe_allow_html=True)
-st.markdown(f"<div style='text-align: right; color: #666; font-size:0.8rem;'>Última actualización: {datetime.now().strftime('%d/%m/%Y %H:%M')}</div>", unsafe_allow_html=True)
-
-# --- FILTROS ---
-with st.sidebar:
-    st.header("🔍 Filtros")
-    fecha_inicio = st.date_input("Fecha inicio", value=datetime(2025, 1, 1))
-    fecha_fin = st.date_input("Fecha fin", value=datetime(2025, 4, 1))
-    if fecha_inicio > fecha_fin:
-        st.error("La fecha de inicio debe ser anterior a la fecha de fin")
-
-    departamentos = st.multiselect("Departamentos", ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI'], default=['Producción', 'Calidad'])
-    st.button("🔄 Actualizar", on_click=lambda: st.experimental_rerun())
-
-# --- CARGA DE DATOS ---
 nom_data, lean_data, bienestar_data = cargar_datos()
 
-# --- KPI PRINCIPALES ---
-st.markdown("## 📊 KPIs Principales")
-cols = st.columns(4)
-kpis = [
-    (92, "Cumplimiento NOM-035", 90, "🧠"),
-    (85, "Adopción LEAN 2.0", 80, "🔄"),
-    (78, "Índice Bienestar", 85, "❤️"),
-    (65, "Eficiencia Operativa", 75, "⚙️")
-]
-for i, kpi in enumerate(kpis):
-    with cols[i]:
-        st.markdown(crear_kpi(*kpi), unsafe_allow_html=True)
+# -----------------------------
+# BARRA LATERAL: FILTROS
+# -----------------------------
+with st.sidebar:
+    st.title("Filtros Avanzados")
 
-# --- TABS ---
+    fecha_inicio = st.date_input("Fecha de inicio", value=date(2025, 1, 1))
+    fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
+
+    departamentos_filtro = st.multiselect(
+        "Seleccionar Departamentos",
+        options=nom_data['Departamento'].unique().tolist(),
+        default=['Producción', 'Calidad', 'Logística']
+    )
+
+    metricas = st.multiselect(
+        "Seleccionar Métricas",
+        ['NOM-035', 'Calidad', 'Productividad', 'Bienestar', 'LEAN'],
+        default=['NOM-035', 'Calidad']
+    )
+
+    st.markdown("---")
+    if st.button("🔄 Actualizar"):
+        st.experimental_rerun()
+
+# -----------------------------
+# ENCABEZADO
+# -----------------------------
+st.markdown("""
+    <div style='display: flex; align-items: center;'>
+        <img src='logo_empresa.png' width='100'>
+        <div style='margin-left: 1rem;'>
+            <h1 style='margin-bottom: 0;'>📈 Sistema Integral NOM-035 & LEAN 2.0</h1>
+            <p style='margin-top: 0; color: gray;'>Monitoreo Estratégico de Bienestar Psicosocial y Eficiencia Operacional</p>
+        </div>
+    </div>
+    <div style='text-align: right; color: #888; font-size:0.85rem;'>Última actualización: {}</div>
+    <hr style='margin-top: 0.5rem;'>
+""".format(datetime.now().strftime('%d/%m/%Y %H:%M')), unsafe_allow_html=True)
+
+# -----------------------------
+# KPI DINÁMICOS
+# -----------------------------
+def kpi_card(valor, titulo, meta=90):
+    delta = valor - meta
+    estado = "✅" if valor >= meta else "⚠️" if valor >= meta - 10 else "❌"
+    color = "green" if valor >= meta else "orange" if valor >= meta - 10 else "red"
+
+    st.markdown(f"""
+        <div style='background-color:{color};padding:1rem;border-radius:8px;color:white;'>
+            <h4 style='margin:0;'>{estado} {titulo}</h4>
+            <p style='font-size:1.5rem;margin:0;'>{valor}%</p>
+            <p style='margin:0;font-size:0.8rem;'>Meta: {meta}%</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+col1, col2, col3, col4 = st.columns(4)
+with col1: kpi_card(92, "Cumplimiento NOM-035")
+with col2: kpi_card(85, "Adopción LEAN 2.0", 80)
+with col3: kpi_card(78, "Índice Bienestar", 85)
+with col4: kpi_card(65, "Eficiencia Operativa", 75)
+
+# -----------------------------
+# VISUALIZACIONES EN TABS
+# -----------------------------
 tab1, tab2, tab3 = st.tabs(["NOM-035", "LEAN 2.0", "Bienestar"])
 
 with tab1:
-    st.subheader("🧠 Cumplimiento NOM-035")
-    df_nom = nom_data[nom_data['Departamento'].isin(departamentos)]
-    fig = px.bar(df_nom, x='Departamento', y=['Evaluaciones', 'Capacitaciones'], barmode='group')
+    st.subheader("Cumplimiento NOM-035 por Departamento")
+    filtered_nom = nom_data[nom_data['Departamento'].isin(departamentos_filtro)]
+
+    fig = px.bar(
+        filtered_nom,
+        x="Departamento",
+        y=["Evaluaciones", "Capacitaciones"],
+        barmode="group",
+        color_discrete_sequence=px.colors.qualitative.Set2
+    )
     st.plotly_chart(fig, use_container_width=True)
 
-    st.subheader("🗺 Mapa de Riesgo Psicosocial")
-    fig2 = go.Figure(data=go.Heatmap(
-        z=df_nom[['Evaluaciones', 'Capacitaciones', 'Incidentes']].T.values,
-        x=df_nom['Departamento'],
+    st.subheader("Mapa de Riesgo Psicosocial")
+    fig_heat = go.Figure(data=go.Heatmap(
+        z=filtered_nom[['Evaluaciones', 'Capacitaciones', 'Incidentes']].values.T,
+        x=filtered_nom['Departamento'],
         y=['Evaluaciones', 'Capacitaciones', 'Incidentes'],
-        colorscale='RdYlGn', reversescale=True))
-    st.plotly_chart(fig2, use_container_width=True)
+        colorscale='RdYlGn',
+        reversescale=True
+    ))
+    st.plotly_chart(fig_heat, use_container_width=True)
 
 with tab2:
-    st.subheader("🔄 Progreso LEAN 2.0")
-    df_lean = lean_data[lean_data['Departamento'].isin(departamentos)]
-    fig = px.bar(df_lean, x='Departamento', y='Eficiencia', color='Eficiencia', color_continuous_scale='Greens')
-    st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Progreso LEAN 2.0")
+    filtered_lean = lean_data[lean_data['Departamento'].isin(departamentos_filtro)]
 
-    fig_radar = go.Figure()
-    for dept in departamentos:
-        row = df_lean[df_lean['Departamento'] == dept].iloc[0]
-        fig_radar.add_trace(go.Scatterpolar(r=[row['Eficiencia'], row['Reducción Desperdicio'], row['Proyectos Activos']],
-                                            theta=['Eficiencia', 'Red. Desperdicio', 'Proy. Activos'], fill='toself', name=dept))
-    fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 100])))
-    st.plotly_chart(fig_radar, use_container_width=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        fig_lean = px.bar(
+            filtered_lean,
+            x='Departamento',
+            y='Eficiencia',
+            color='Eficiencia',
+            color_continuous_scale='Greens'
+        )
+        st.plotly_chart(fig_lean, use_container_width=True)
+
+    with col2:
+        fig_radar = go.Figure()
+        for dept in filtered_lean['Departamento']:
+            row = filtered_lean[filtered_lean['Departamento'] == dept].iloc[0]
+            fig_radar.add_trace(go.Scatterpolar(
+                r=[row['Eficiencia'], row['Reducción Desperdicio'], row['Proyectos Activos']*20],
+                theta=['Eficiencia', 'Reducción', 'Proyectos'],
+                fill='toself',
+                name=dept
+            ))
+        fig_radar.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=True)
+        st.plotly_chart(fig_radar, use_container_width=True)
 
 with tab3:
-    st.subheader("❤️ Tendencias de Bienestar")
-    fig = px.line(bienestar_data, x='Mes', y=['Índice Bienestar', 'Ausentismo', 'Rotación'], markers=True)
-    st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Tendencias de Bienestar Organizacional")
+    fig_bienestar = px.line(
+        bienestar_data,
+        x='Mes',
+        y=['Índice Bienestar', 'Ausentismo', 'Rotación'],
+        markers=True,
+        color_discrete_map={
+            'Índice Bienestar': 'green',
+            'Ausentismo': 'red',
+            'Rotación': 'orange'
+        }
+    )
+    st.plotly_chart(fig_bienestar, use_container_width=True)
 
-# --- ALERTAS ---
-st.markdown("## 🚨 Alertas")
+# -----------------------------
+# ALERTAS Y OPORTUNIDADES
+# -----------------------------
+st.markdown("## Alertas y Planes de Acción")
 col1, col2 = st.columns(2)
+
 with col1:
-    st.subheader("🔴 Áreas Críticas")
-    criticos = nom_data[nom_data['Evaluaciones'] < 80][['Departamento', 'Evaluaciones', 'Incidentes']]
-    st.dataframe(criticos.style.background_gradient(cmap='Reds'), use_container_width=True)
+    st.markdown("### Áreas Críticas")
+    st.dataframe(
+        nom_data[nom_data['Evaluaciones'] < 80]
+        .sort_values('Evaluaciones')
+        .style.background_gradient(cmap='Reds')
+    )
 
 with col2:
-    st.subheader("🟡 Oportunidades de Mejora")
-    mejora = lean_data[lean_data['Eficiencia'] < 75][['Departamento', 'Eficiencia', 'Reducción Desperdicio']]
-    st.dataframe(mejora.style.background_gradient(cmap='Oranges'), use_container_width=True)
+    st.markdown("### Oportunidades de Mejora")
+    st.dataframe(
+        lean_data[lean_data['Eficiencia'] < 75]
+        .sort_values('Eficiencia')
+        .style.background_gradient(cmap='Oranges')
+    )
 
-# --- PLAN DE ACCIÓN ---
-with st.expander("📝 Plan de Acción"):
-    form = st.form("plan_form")
-    dept = form.selectbox("Departamento", nom_data['Departamento'].unique())
-    problema = form.text_input("Problema")
-    accion = form.text_area("Acción Propuesta")
-    responsable = form.text_input("Responsable")
-    plazo = form.date_input("Plazo")
-    submit = form.form_submit_button("💾 Guardar")
-    if submit:
-        st.success(f"Plan de acción para {dept} guardado.")
+# -----------------------------
+# PLAN DE ACCIÓN
+# -----------------------------
+with st.expander("📝 Registrar nuevo plan de acción"):
+    col1, col2 = st.columns(2)
+    with col1:
+        dept = st.selectbox("Departamento", nom_data['Departamento'].unique())
+        problema = st.text_input("Problema identificado")
+        responsable = st.text_input("Responsable")
+    with col2:
+        accion = st.text_area("Acción propuesta")
+        plazo = st.date_input("Plazo estimado")
+
+    if st.button("Guardar Plan de Acción"):
+        st.success(f"Plan para {dept} guardado.")
+
+# -----------------------------
+# EXPORTACIÓN
+# -----------------------------
+st.markdown("---")
+st.subheader("Exportación de Datos")
+col1, col2, col3 = st.columns(3)
+with col1:
+    if st.button("📄 Generar Reporte PDF"):
+        st.success("(Simulado) Reporte generado")
+with col2:
+    if st.button("📊 Exportar Excel"):
+        st.success("(Simulado) Datos exportados")
+with col3:
+    if st.button("📧 Enviar Reporte"):
+        st.success("(Simulado) Reporte enviado")
+
 
 # --- PIE ---
 st.markdown("---")
