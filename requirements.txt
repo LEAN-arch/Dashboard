@@ -1,13 +1,11 @@
 # Core dashboard libraries
-streamlit>=1.30.0
-pandas>=2.2.0
-plotly>=5.18.0
-numpy>=1.26.0
 matplotlib>=3.8.0
-altair==4.2.0
-st-aggrid==0.3.1
-toml==0.10.2
-pip install -r requirements.txt
+streamlit>=1.32.0
+pandas>=2.2.1
+numpy>=1.26.4
+plotly>=5.20.0
 
 # PDF generation
 pdfkit>=1.0.0
+openpyxl>=3.1.2       # Para exportar a Excel
+reportlab>=4.0.7       # Para generar PDFs
