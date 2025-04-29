@@ -366,12 +366,12 @@ class NOMLEANDashboard:
     def __init__(self):
         class NOMLEANDashboard:
             def __init__(self):
-            self.load_data()
-            self.initialize_session_state()
-            self.initialize_sidebar()
-            self.render_header()
-            self.render_kpis()
-            self.render_main_content()
+                self.load_data()
+                self.initialize_session_state()
+                self.initialize_sidebar()
+                self.render_header()
+                self.render_kpis()
+                self.render_main_content()
     
     def initialize_session_state(self):
         """Initialize session state variables"""
