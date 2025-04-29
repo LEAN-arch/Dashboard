@@ -81,7 +81,7 @@ st.markdown(f"""
 
 /* Sidebar */
 [data-testid="stSidebar"] {{
-    background-color: {ds.COLORS['dark']} !important;
+    background-color: {ds.COLORS['primary']} !important;
     color: white !important;
 }}
 
@@ -138,7 +138,14 @@ class DataService:
     DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
     
     @staticmethod
-    @st.cache_data(ttl=600, show_spinner="Cargando datos...")
+    @st.cache_data(
+    ttl=600,
+    show_spinner="Cargando datos...",
+    hash_funcs={
+        pd.DataFrame: lambda x: pd.util.hash_pandas_object(x).sum(),
+        datetime.date: lambda x: x.isoformat()
+    }
+)
     def load_data():
         """Generate synthetic data with realistic patterns"""
         np.random.seed(42)
@@ -160,7 +167,7 @@ class DataService:
         
         nom = pd.DataFrame({
             'Departamento': DataService.DEPARTMENTS,
-            'Evaluaciones': [generate_trend(nom_data[d]['base'], nom_data[d]['trend'], nom_data[d]['volatility']) for d in DataService.DEPARTMENTS],
+            'Evaluaciones': [int(generate_trend(nom_data[d]['base'], nom_data[d]['trend'], nom_data[d]['volatility'])) for d in DataService.DEPARTMENTS],
             'Capacitaciones': np.random.randint(60, 100, len(DataService.DEPARTMENTS)),
             'Incidentes': [max(0, int(30 - x*0.25 + np.random.normal(0, 3))) for x in range(len(DataService.DEPARTMENTS))],
             'Tendencia': [nom_data[d]['trend'] * 100 + np.random.normal(0, 0.5) for d in DataService.DEPARTMENTS]
@@ -264,8 +271,9 @@ class KPICard:
             </div>
             """, unsafe_allow_html=True)
             
-            if help_text:
-                st.markdown(f"<span title='{help_text}' style='font-size: 0;'>?</span>", unsafe_allow_html=True)
+        if help_text:
+        with st.tooltip(help_text):
+             st.markdown("ℹ️", unsafe_allow_html=True)
 
 class DataVisualizer:
     @staticmethod
@@ -533,8 +541,18 @@ class NOMLEANDashboard:
         filtered_nom = self.nom_df[self.nom_df['Departamento'].isin(self.departments_filter)]
         
         # Validate filtered data
+        # Enhanced empty state
         if filtered_nom.empty:
-            st.warning("No hay datos disponibles para los departamentos seleccionados")
+            col1, col2, col3 = st.columns([1, 3, 1])
+        with col2:
+        st.image("https://via.placeholder.com/300x150?text=No+Data+Available", width=300)
+        st.markdown("""
+        <div style="text-align: center; margin-top: 1rem;">
+            <h4 style="color: #6b7280;">No hay datos disponibles</h4>
+            <p style="color: #9ca3af;">Pruebe con otros filtros o fechas</p>
+        </div>
+        """, unsafe_allow_html=True)
+    return
             return
         
         # Create tabs for different views
@@ -689,9 +707,12 @@ class NOMLEANDashboard:
             # Normalize data for radar chart
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
-            lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']] = scaler.fit_transform(
-                lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']]
-            )
+            metrics = ['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']
+for metric in metrics:
+    if lean_radar[metric].max() - lean_radar[metric].min() > 0:
+        lean_radar[metric] = (lean_radar[metric] - lean_radar[metric].min()) / (lean_radar[metric].max() - lean_radar[metric].min())
+    else:
+        lean_radar[metric] = 0.5  # Default midpoint value when no variation
             
             fig_radar = DataVisualizer.create_radar_chart(
                 lean_radar,
@@ -716,10 +737,10 @@ class NOMLEANDashboard:
         st.markdown("#### Tendencias de Bienestar Organizacional")
         
         # Filter wellbeing data by date range
-        filtered_bienestar = self.bienestar_df[
-            (self.bienestar_df['Mes'].dt.date >= self.start_date) & 
-            (self.bienestar_df['Mes'].dt.date <= self.end_date)
-        ]
+       filtered_bienestar = self.bienestar_df[
+       (self.bienestar_df['Mes'].dt.date >= pd.to_datetime(self.start_date).date()) & 
+       (self.bienestar_df['Mes'].dt.date <= pd.to_datetime(self.end_date).date())
+   ]
         
         if filtered_bienestar.empty:
             st.warning("No hay datos disponibles para el período seleccionado")
@@ -891,7 +912,20 @@ class NOMLEANDashboard:
                                                 type="primary")
                 
                 if submitted:
-                    if not all([dept, problema, accion, responsable]):
+                    validation_errors = []
+                if not dept:
+                    validation_errors.append("Seleccione un departamento")
+                if not problema or len(problema.strip()) < 10:
+                    validation_errors.append("Describa el problema con más detalle (mínimo 10 caracteres)")
+                if not accion or len(accion.strip()) < 10:
+                    validation_errors.append("Describa la acción con más detalle (mínimo 10 caracteres)")
+                if not responsable or len(responsable.strip()) < 3:
+                    validation_errors.append("Ingrese un nombre válido para el responsable")
+
+                if validation_errors:
+                    for error in validation_errors:
+                    st.error(error)
+                    st.stop()
                         st.error("Por favor complete todos los campos obligatorios")
                     else:
                         # In a real app, this would save to a database
