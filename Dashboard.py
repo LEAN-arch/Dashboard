@@ -295,8 +295,12 @@ def kpi_card(value, title, target, icon="📊", help_text=None):
     """
     
     if help_text:
-        with st.tooltip(help_text):
+        # Create a container with tooltip
+        container = st.container()
+        with container:
             st.markdown(card_html, unsafe_allow_html=True)
+        # Add tooltip to the container
+        st.markdown(f"<span title='{help_text}'> </span>", unsafe_allow_html=True)
     else:
         st.markdown(card_html, unsafe_allow_html=True)
 
