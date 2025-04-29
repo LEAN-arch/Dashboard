@@ -68,10 +68,6 @@ if actualizar:
     st.toast("Datos actualizados", icon="🔁")
     st.experimental_rerun()
 
-# Main code continues and optionally checks this:
-if actualizar:
-    st.toast("Actualizando datos...", icon="🔄")
-    st.experimental_rerun()
 
 # ---- ENCABEZADO ----
 st.markdown(f"""
