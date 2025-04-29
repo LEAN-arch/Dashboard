@@ -745,7 +745,7 @@ for metric in metrics:
     else:
         lean_radar[metric] = 0.5  # Default midpoint value when no variation
             
-            fig_radar = DataVisualizer.create_radar_chart(
+        fig_radar = DataVisualizer.create_radar_chart(
                 lean_radar,
                 categories=['Eficiencia', 'Reducción', '5S', 'SMED'],
                 values=['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED'],
