@@ -12,14 +12,11 @@ st.set_page_config(
     layout="wide",
     page_icon="📊"
 )
-# Load data before anything else
-nom_data, lean_data, bienestar_data = cargar_datos()
 
 # ---- CARGA DE DATOS ----
 @st.cache_data(ttl=600)
 def cargar_datos():
     departamentos = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
-
     nom = pd.DataFrame({
         'Departamento': departamentos,
         'Evaluaciones': np.random.randint(70, 100, 7),
@@ -27,23 +24,21 @@ def cargar_datos():
         'Incidentes': np.random.randint(0, 10, 7),
         'Tendencia': np.round(np.random.normal(0.5, 1.5, 7), 2)
     })
-
     lean = pd.DataFrame({
         'Departamento': departamentos,
         'Eficiencia': np.random.randint(60, 95, 7),
         'Reducción Desperdicio': np.random.randint(5, 25, 7),
         'Proyectos Activos': np.random.randint(1, 6, 7)
     })
-
     bienestar = pd.DataFrame({
         'Mes': pd.date_range(start='2024-01-01', periods=12, freq='M'),
         'Índice Bienestar': np.round(np.random.normal(75, 5, 12), 1),
         'Ausentismo': np.round(np.random.normal(8, 2, 12), 1),
         'Rotación': np.round(np.random.normal(12, 3, 12), 1)
     })
-
     return nom, lean, bienestar
 
+# Carga de datos inicial
 nom_df, lean_df, bienestar_df = cargar_datos()
 
 # ---- SIDEBAR ----
@@ -53,7 +48,7 @@ with st.sidebar:
     fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
     departamentos_filtro = st.multiselect(
         "Seleccionar Departamentos",
-        options=nom_data['Departamento'].unique().tolist(),
+        options=nom_df['Departamento'].unique().tolist(),
         default=['Producción', 'Calidad', 'Logística']
     )
     metricas = st.multiselect(
@@ -61,23 +56,12 @@ with st.sidebar:
         ['NOM-035', 'Calidad', 'Productividad', 'Bienestar', 'LEAN'],
         default=['NOM-035', 'Calidad']
     )
-
-    # Add space and refresh button at bottom
     st.markdown("---")
     actualizar = st.button("🔄 Actualizar")
 
 if actualizar:
     st.toast("Datos actualizados", icon="🔁")
     st.experimental_rerun()
-with st.sidebar:
-    st.title("Filtros Avanzados")
-    fecha_inicio = st.date_input("Fecha de inicio", value=date(2025, 1, 1))
-    fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
-    departamentos_filtro = st.multiselect(
-        "Seleccionar Departamentos",
-        options=nom_data['Departamento'].unique().tolist(),
-        default=['Producción', 'Calidad', 'Logística']
-    )
 
 
 # ---- ENCABEZADO ----
