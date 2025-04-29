@@ -10,7 +10,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # ========== INITIALIZATION ==========
-# Page config must be first Streamlit command
 st.set_page_config(
     page_title="NOM-035 & LEAN Dashboard",
     layout="wide",
@@ -20,24 +19,21 @@ st.set_page_config(
 
 # ========== DESIGN SYSTEM ==========
 class DesignSystem:
-    # Color palette
     COLORS = {
-        'primary': '#2563eb',    # More vibrant blue
-        'secondary': '#4f46e5',  # Purple-blue
-        'accent': '#7c3aed',     # Vibrant purple
-        'success': '#10b981',    # Emerald green
-        'warning': '#f59e0b',    # Amber
-        'danger': '#ef4444',     # Red
-        'light': '#f3f4f6',      # Light gray
-        'dark': '#1f2937',       # Dark gray
-        'background': '#ffffff', # Pure white
-        'text': '#374151'        # Dark gray
+        'primary': '#2563eb',
+        'secondary': '#4f46e5',
+        'accent': '#7c3aed',
+        'success': '#10b981',
+        'warning': '#f59e0b',
+        'danger': '#ef4444',
+        'light': '#f3f4f6',
+        'dark': '#1f2937',
+        'background': '#ffffff',
+        'text': '#374151'
     }
     
-    # Typography
     FONT = "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
     
-    # Spacing
     SPACING = {
         'xs': '0.25rem',
         'sm': '0.5rem',
@@ -46,14 +42,12 @@ class DesignSystem:
         'xl': '2rem'
     }
     
-    # Shadows
     SHADOWS = {
         'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
     }
     
-    # Border radius
     RADIUS = {
         'sm': '0.375rem',
         'md': '0.5rem',
@@ -61,10 +55,8 @@ class DesignSystem:
         'full': '9999px'
     }
 
-# Initialize design system
 ds = DesignSystem()
 
-# Load custom font and styles
 st.markdown(f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -73,19 +65,16 @@ st.markdown(f"""
     font-family: {ds.FONT};
 }}
 
-/* Main layout */
 .main {{
     background-color: {ds.COLORS['background']};
     padding: {ds.SPACING['md']};
 }}
 
-/* Sidebar */
 [data-testid="stSidebar"] {{
     background-color: {ds.COLORS['primary']} !important;
     color: white !important;
 }}
 
-/* Cards */
 .card {{
     background-color: white;
     border-radius: {ds.RADIUS['md']};
@@ -99,7 +88,6 @@ st.markdown(f"""
     transform: translateY(-2px);
 }}
 
-/* Interactive elements */
 button {{
     transition: all 0.2s ease !important;
 }}
@@ -108,13 +96,11 @@ button:hover {{
     transform: translateY(-1px);
 }}
 
-/* Data tables */
 .stDataFrame {{
     border-radius: {ds.RADIUS['sm']};
     box-shadow: {ds.SHADOWS['sm']};
 }}
 
-/* Tabs */
 [data-baseweb="tab-list"] {{
     gap: {ds.SPACING['sm']};
 }}
@@ -147,14 +133,11 @@ class DataService:
         }
     )
     def load_data():
-        """Generate synthetic data with realistic patterns"""
         np.random.seed(42)
         
-        # Helper function for trended data
         def generate_trend(base, trend, noise=0.1):
             return base * (1 + trend) + np.random.normal(0, noise * base)
         
-        # NOM-035 Data with department-specific patterns
         nom_data = {
             'Producción': {'base': 85, 'trend': 0.02, 'volatility': 0.08},
             'Calidad': {'base': 90, 'trend': 0.01, 'volatility': 0.05},
@@ -173,7 +156,6 @@ class DataService:
             'Tendencia': [nom_data[d]['trend'] * 100 + np.random.normal(0, 0.5) for d in DataService.DEPARTMENTS]
         })
         
-        # LEAN Data with realistic correlations
         lean = pd.DataFrame({
             'Departamento': DataService.DEPARTMENTS,
             'Eficiencia': [x + np.random.randint(-5, 5) for x in np.linspace(65, 90, len(DataService.DEPARTMENTS))],
@@ -183,7 +165,6 @@ class DataService:
             'SMED': np.random.randint(50, 90, len(DataService.DEPARTMENTS))
         })
         
-        # Time-series wellbeing data
         dates = pd.date_range(start='2024-01-01', periods=12, freq='M')
         bienestar = pd.DataFrame({
             'Mes': dates,
@@ -193,7 +174,6 @@ class DataService:
             'Encuestas': np.random.randint(80, 100, 12)
         })
         
-        # Action plans with realistic data
         action_plans = pd.DataFrame({
             'ID': range(1, 6),
             'Departamento': np.random.choice(DataService.DEPARTMENTS, 5),
@@ -224,7 +204,6 @@ class DataService:
 class KPICard:
     @staticmethod
     def render(value, title, target, icon="📊", help_text=None):
-        """Create an interactive KPI card with visual indicators"""
         delta = value - target
         percentage = min(100, (value / target * 100)) if target != 0 else 0
         
@@ -278,7 +257,6 @@ class KPICard:
 class DataVisualizer:
     @staticmethod
     def create_bar_chart(data, x, y, title, color=None, barmode='group'):
-        """Create a responsive bar chart with consistent styling"""
         fig = px.bar(
             data,
             x=x,
@@ -305,7 +283,6 @@ class DataVisualizer:
     
     @staticmethod
     def create_line_chart(data, x, y, title):
-        """Create a responsive line chart with consistent styling"""
         fig = px.line(
             data,
             x=x,
@@ -330,7 +307,6 @@ class DataVisualizer:
     
     @staticmethod
     def create_radar_chart(data, categories, values, title):
-        """Create a responsive radar chart with consistent styling"""
         fig = go.Figure()
         
         for i, row in data.iterrows():
@@ -364,6 +340,16 @@ class DataVisualizer:
 # ========== APPLICATION ==========
 class NOMLEANDashboard:
     def __init__(self):
+        # Initialize default values first
+        self.nom_target = 90
+        self.lean_target = 80
+        self.wellbeing_target = 85
+        self.efficiency_target = 75
+        self.start_date = date(2024, 1, 1)
+        self.end_date = date(2024, 4, 1)
+        self.departments_filter = ['Producción', 'Calidad', 'Logística']
+        
+        # Then load data and initialize
         self.load_data()
         self.initialize_session_state()
         self.initialize_sidebar()
@@ -372,39 +358,28 @@ class NOMLEANDashboard:
         self.render_main_content()
     
     def initialize_session_state(self):
-        """Initialize session state variables"""
         if 'action_plans' not in st.session_state:
             st.session_state.action_plans = self.action_plans_df.copy()
     
     def load_data(self):
-        """Load and cache data"""
         self.nom_df, self.lean_df, self.bienestar_df, self.action_plans_df = DataService.load_data()
         
-        # Set default values for targets
-        self.nom_target = 90
-        self.lean_target = 80
-        self.wellbeing_target = 85
-        self.efficiency_target = 75
-        
-        # Set default dates if not in session state
-        if 'start_date' not in st.session_state:
-            st.session_state.start_date = date(2024, 1, 1)
-        if 'end_date' not in st.session_state:
-            st.session_state.end_date = date(2024, 4, 1)
-        if 'departments_filter' not in st.session_state:
-            st.session_state.departments_filter = ['Producción', 'Calidad', 'Logística']
+        # Update session state dates if they exist
+        if 'start_date' in st.session_state:
+            self.start_date = st.session_state.start_date
+        if 'end_date' in st.session_state:
+            self.end_date = st.session_state.end_date
+        if 'departments_filter' in st.session_state:
+            self.departments_filter = st.session_state.departments_filter
     
     def save_action_plan(self, new_plan):
-        """Save new action plan to session state"""
         updated_plans = pd.concat([st.session_state.action_plans, new_plan], ignore_index=True)
         st.session_state.action_plans = updated_plans
         st.toast("✅ Plan de acción registrado correctamente", icon="✅")
         st.rerun()
     
     def initialize_sidebar(self):
-        """Configure the sidebar filters and controls"""
         with st.sidebar:
-            # Branding
             st.markdown(f"""
             <div style="display: flex; align-items: center; margin-bottom: {ds.SPACING['lg']};">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -417,7 +392,6 @@ class NOMLEANDashboard:
             
             st.markdown("---")
             
-            # Date range filter
             st.markdown(f"**🔍 Filtros de Periodo**", help="Seleccione el rango de fechas para analizar")
             fecha_inicio, fecha_fin = st.columns(2)
             with fecha_inicio:
@@ -437,7 +411,6 @@ class NOMLEANDashboard:
                     key="date_end"
                 )
             
-            # Department filter
             st.markdown(f"**🏢 Departamentos**", help="Seleccione los departamentos a visualizar")
             self.departments_filter = st.multiselect(
                 "Seleccionar departamentos",
@@ -448,7 +421,6 @@ class NOMLEANDashboard:
             
             st.markdown("---")
             
-            # KPI targets configuration
             with st.expander("⚙️ Configuración de Metas", expanded=False):
                 self.nom_target = st.slider("Meta NOM-035 (%)", 50, 100, self.nom_target,
                                            help="Establezca la meta de cumplimiento para NOM-035")
@@ -461,12 +433,10 @@ class NOMLEANDashboard:
             
             st.markdown("---")
             
-            # Refresh button
             if st.button("🔄 Actualizar Datos", use_container_width=True,
                         help="Actualiza todos los datos y visualizaciones con los filtros actuales"):
                 st.rerun()
             
-            # Version info
             st.markdown("---")
             st.markdown(f"""
             <div style="text-align: center; color: #9ca3af; font-size: 0.75rem;">
@@ -476,7 +446,6 @@ class NOMLEANDashboard:
             """, unsafe_allow_html=True)
     
     def render_header(self):
-        """Render the main header section"""
         st.markdown(f"""
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: {ds.SPACING['xl']};">
             <div>
@@ -498,14 +467,11 @@ class NOMLEANDashboard:
         """, unsafe_allow_html=True)
     
     def render_kpis(self):
-        """Render the KPI cards section"""
-        # Calculate KPIs from data
         nom_compliance = self.nom_df['Evaluaciones'].mean()
         lean_adoption = self.lean_df['Eficiencia'].mean()
         wellbeing_index = self.bienestar_df['Índice Bienestar'].mean()
         operational_efficiency = self.lean_df['Eficiencia'].mean()
         
-        # Display KPIs in columns
         cols = st.columns(4)
         with cols[0]: 
             KPICard.render(
@@ -541,7 +507,6 @@ class NOMLEANDashboard:
             )
     
     def render_main_content(self):
-        """Render the main content tabs"""
         tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN 2.0", "😊 Bienestar", "📝 Planes de Acción"])
         
         with tab1:
@@ -557,13 +522,10 @@ class NOMLEANDashboard:
             self.render_action_plans_tab()
     
     def render_nom035_tab(self):
-        """Render the NOM-035 compliance tab"""
         st.markdown("#### Cumplimiento NOM-035 por Departamento")
         
-        # Filter data
         filtered_nom = self.nom_df[self.nom_df['Departamento'].isin(self.departments_filter)]
         
-        # Enhanced empty state
         if filtered_nom.empty:
             col1, col2, col3 = st.columns([1, 3, 1])
             with col2:
@@ -576,14 +538,12 @@ class NOMLEANDashboard:
                 """, unsafe_allow_html=True)
             return
         
-        # Create tabs for different views
         nom_view1, nom_view2, nom_view3 = st.tabs(["Métricas Principales", "Mapa de Riesgo", "Análisis de Tendencia"])
         
         with nom_view1:
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                # Bar chart for evaluations and trainings
                 fig = DataVisualizer.create_bar_chart(
                     filtered_nom.melt(id_vars='Departamento', 
                                     value_vars=['Evaluaciones', 'Capacitaciones']),
@@ -603,7 +563,6 @@ class NOMLEANDashboard:
                 )
         
         with nom_view2:
-            # Risk heatmap
             fig_heat = go.Figure(data=go.Heatmap(
                 z=filtered_nom[['Evaluaciones', 'Capacitaciones', 'Incidentes']].values.T,
                 x=filtered_nom['Departamento'],
@@ -626,7 +585,6 @@ class NOMLEANDashboard:
             st.plotly_chart(fig_heat, use_container_width=True)
         
         with nom_view3:
-            # Trend analysis
             col1, col2 = st.columns([3, 1])
             
             with col1:
@@ -666,7 +624,6 @@ class NOMLEANDashboard:
                 """, unsafe_allow_html=True)
     
     def render_lean_tab(self):
-        """Render the LEAN 2.0 progress tab"""
         st.markdown("#### Progreso LEAN 2.0")
         filtered_lean = self.lean_df[self.lean_df['Departamento'].isin(self.departments_filter)]
         
@@ -674,11 +631,9 @@ class NOMLEANDashboard:
             st.warning("No hay datos disponibles para los departamentos seleccionados")
             return
         
-        # Create columns for layout
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            # Efficiency bar chart
             fig_lean = px.bar(
                 filtered_lean, 
                 x='Departamento', 
@@ -698,7 +653,6 @@ class NOMLEANDashboard:
             )
             st.plotly_chart(fig_lean, use_container_width=True)
             
-            # Waste reduction vs efficiency scatter plot
             fig_scatter = px.scatter(
                 filtered_lean,
                 x='Reducción Desperdicio',
@@ -722,10 +676,8 @@ class NOMLEANDashboard:
             st.plotly_chart(fig_scatter, use_container_width=True)
         
         with col2:
-            # Radar chart for multiple metrics
             st.markdown("**📊 Comparación de Métricas**")
             
-            # Normalize data for radar chart
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
             metrics = ['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']
@@ -733,7 +685,7 @@ class NOMLEANDashboard:
                 if lean_radar[metric].max() - lean_radar[metric].min() > 0:
                     lean_radar[metric] = (lean_radar[metric] - lean_radar[metric].min()) / (lean_radar[metric].max() - lean_radar[metric].min())
                 else:
-                    lean_radar[metric] = 0.5  # Default midpoint value when no variation
+                    lean_radar[metric] = 0.5
             
             fig_radar = DataVisualizer.create_radar_chart(
                 lean_radar,
@@ -743,7 +695,6 @@ class NOMLEANDashboard:
             )
             st.plotly_chart(fig_radar, use_container_width=True)
             
-            # Projects summary
             with st.expander("📌 Detalle de Proyectos", expanded=True):
                 st.dataframe(
                     filtered_lean[['Departamento', 'Proyectos Activos', '5S_Score', 'SMED']]
@@ -754,10 +705,8 @@ class NOMLEANDashboard:
                 )
     
     def render_wellbeing_tab(self):
-        """Render the organizational wellbeing tab"""
         st.markdown("#### Tendencias de Bienestar Organizacional")
         
-        # Filter wellbeing data by date range
         filtered_bienestar = self.bienestar_df[
             (self.bienestar_df['Mes'].dt.date >= pd.to_datetime(self.start_date).date()) & 
             (self.bienestar_df['Mes'].dt.date <= pd.to_datetime(self.end_date).date())
@@ -767,7 +716,6 @@ class NOMLEANDashboard:
             st.warning("No hay datos disponibles para el período seleccionado")
             return
         
-        # Main metrics
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric(
@@ -791,11 +739,9 @@ class NOMLEANDashboard:
                 help="Tasa de rotación de personal"
             )
         
-        # Create tabs for different views
         wellbeing_view1, wellbeing_view2 = st.tabs(["Tendencias Mensuales", "Análisis de Correlación"])
         
         with wellbeing_view1:
-            # Line chart for wellbeing metrics
             fig = DataVisualizer.create_line_chart(
                 filtered_bienestar.melt(id_vars='Mes', 
                                       value_vars=['Índice Bienestar', 'Ausentismo', 'Rotación']),
@@ -807,7 +753,6 @@ class NOMLEANDashboard:
             st.plotly_chart(fig, use_container_width=True)
         
         with wellbeing_view2:
-            # Correlation analysis
             corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas']].corr()
             fig_corr = px.imshow(
                 corr_matrix,
@@ -827,10 +772,8 @@ class NOMLEANDashboard:
             st.plotly_chart(fig_corr, use_container_width=True)
     
     def render_action_plans_tab(self):
-        """Render the action plans tab"""
         st.markdown("#### Planes de Acción y Seguimiento")
         
-        # Display existing action plans
         col1, col2 = st.columns([3, 1])
         
         with col1:
@@ -906,7 +849,6 @@ class NOMLEANDashboard:
             else:
                 st.info("No hay planes con vencimiento próximo", icon="ℹ️")
         
-        # Add new action plan form
         with st.expander("➕ Registrar Nuevo Plan de Acción", expanded=False):
             with st.form("nuevo_plan_form", clear_on_submit=True):
                 col1, col2 = st.columns(2)
@@ -948,7 +890,6 @@ class NOMLEANDashboard:
                             st.error(error)
                         st.stop()
                     else:
-                        # In a real app, this would save to a database
                         new_plan = pd.DataFrame([{
                             'ID': len(self.action_plans_df) + 1,
                             'Departamento': dept,
@@ -963,6 +904,5 @@ class NOMLEANDashboard:
                         
                         self.save_action_plan(new_plan)
 
-# ========== RUN APPLICATION ==========
 if __name__ == "__main__":
     dashboard = NOMLEANDashboard()
