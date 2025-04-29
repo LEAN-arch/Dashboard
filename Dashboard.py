@@ -714,53 +714,96 @@ class NOMLEANDashboard:
                     use_container_width=True
                 )
     
-    def render_wellbeing_tab(self):
-        st.markdown("#### Tendencias de Bienestar Organizacional")
+def render_wellbeing_tab(self):
+    st.markdown("#### Tendencias de Bienestar Organizacional")
+    
+    filtered_bienestar = self.bienestar_df[
+        (self.bienestar_df['Mes'].dt.date >= pd.to_datetime(self.start_date).date()) & 
+        (self.bienestar_df['Mes'].dt.date <= pd.to_datetime(self.end_date).date())
+    ]
+    
+    if filtered_bienestar.empty:
+        st.warning("No hay datos disponibles para el período seleccionado")
+        return
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric(
+            label="Encuestas Completadas", 
+            value=f"{filtered_bienestar['Encuestas'].mean():.0f}%",
+            delta=f"{filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0]:+.0f}%",
+            help="Porcentaje de encuestas de clima laboral completadas"
+        )
+    with col2:
+        st.metric(
+            label="Reducción de Ausentismo", 
+            value=f"{filtered_bienestar['Ausentismo'].iloc[-1]:.1f}%",
+            delta=f"{filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0]:+.1f}%",
+            help="Tasa de ausentismo laboral"
+        )
+    with col3:
+        st.metric(
+            label="Reducción de Rotación", 
+            value=f"{filtered_bienestar['Rotación'].iloc[-1]:.1f}%",
+            delta=f"{filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0]:+.1f}%",
+            help="Tasa de rotación de personal"
+        )
+    
+    wellbeing_view1, wellbeing_view2 = st.tabs(["Tendencias Mensuales", "Análisis de Correlación"])
+    
+    with wellbeing_view1:
+        # Prepare data for line chart
+        line_data = filtered_bienestar.melt(
+            id_vars='Mes', 
+            value_vars=['Índice Bienestar', 'Ausentismo', 'Rotación'],
+            var_name='Metrica',
+            value_name='Valor'
+        )
         
-        filtered_bienestar = self.bienestar_df[
-            (self.bienestar_df['Mes'].dt.date >= pd.to_datetime(self.start_date).date()) & 
-            (self.bienestar_df['Mes'].dt.date <= pd.to_datetime(self.end_date).date())
-        ]
+        # Create line chart with proper data structure
+        fig = px.line(
+            line_data,
+            x='Mes',
+            y='Valor',
+            color='Metrica',
+            title="Evolución Mensual de Bienestar",
+            template='plotly_white',
+            color_discrete_sequence=[ds.COLORS['primary'], ds.COLORS['success'], ds.COLORS['danger']],
+            labels={'Valor': 'Valor (%)', 'Mes': 'Fecha', 'Metrica': 'Métrica'}
+        )
         
-        if filtered_bienestar.empty:
-            st.warning("No hay datos disponibles para el período seleccionado")
-            return
+        fig.update_layout(
+            plot_bgcolor='rgba(0,0,0,0)',
+            paper_bgcolor='rgba(0,0,0,0)',
+            margin=dict(l=20, r=20, t=60, b=20),
+            hovermode='x unified',
+            xaxis_title="",
+            yaxis_title="",
+            legend_title="",
+            font=dict(family=ds.FONT)
+        )
         
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.metric(
-                label="Encuestas Completadas", 
-                value=f"{filtered_bienestar['Encuestas'].mean():.0f}%",
-                delta=f"{filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0]:+.0f}%",
-                help="Porcentaje de encuestas de clima laboral completadas"
-            )
-        with col2:
-            st.metric(
-                label="Reducción de Ausentismo", 
-                value=f"{filtered_bienestar['Ausentismo'].iloc[-1]:.1f}%",
-                delta=f"{filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0]:+.1f}%",
-                help="Tasa de ausentismo laboral"
-            )
-        with col3:
-            st.metric(
-                label="Reducción de Rotación", 
-                value=f"{filtered_bienestar['Rotación'].iloc[-1]:.1f}%",
-                delta=f"{filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0]:+.1f}%",
-                help="Tasa de rotación de personal"
-            )
-        
-        wellbeing_view1, wellbeing_view2 = st.tabs(["Tendencias Mensuales", "Análisis de Correlación"])
-        
-        with wellbeing_view1:
-            fig = DataVisualizer.create_line_chart(
-                filtered_bienestar.melt(id_vars='Mes', 
-                                      value_vars=['Índice Bienestar', 'Ausentismo', 'Rotación']),
-                x='Mes',
-                y='value',
-                color='variable',
-                title="Evolución Mensual de Bienestar"
-            )
-            st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    with wellbeing_view2:
+        # Correlation analysis
+        corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas']].corr()
+        fig_corr = px.imshow(
+            corr_matrix,
+            text_auto=True,
+            color_continuous_scale='RdYlGn',
+            range_color=[-1, 1],
+            labels=dict(x="Métrica", y="Métrica", color="Correlación"),
+            height=400
+        )
+        fig_corr.update_layout(
+            title="Matriz de Correlación",
+            xaxis_title="",
+            yaxis_title="",
+            margin=dict(l=50, r=50, t=50, b=50),
+            font=dict(family=ds.FONT)
+        )
+        st.plotly_chart(fig_corr, use_container_width=True)
         
         with wellbeing_view2:
             corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas']].corr()
