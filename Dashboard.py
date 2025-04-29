@@ -139,13 +139,13 @@ class DataService:
     
     @staticmethod
     @st.cache_data(
-    ttl=600,
-    show_spinner="Cargando datos...",
-    hash_funcs={
-        pd.DataFrame: lambda x: pd.util.hash_pandas_object(x).sum(),
-        datetime.date: lambda x: x.isoformat()
-    }
-)
+        ttl=600,
+        show_spinner="Cargando datos...",
+        hash_funcs={
+            pd.DataFrame: lambda x: pd.util.hash_pandas_object(x).sum(),
+            datetime.date: lambda x: x.isoformat()
+        }
+    )
     def load_data():
         """Generate synthetic data with realistic patterns"""
         np.random.seed(42)
@@ -271,9 +271,9 @@ class KPICard:
             </div>
             """, unsafe_allow_html=True)
             
-        if help_text:
-            with st.tooltip(help_text):
-             st.markdown("ℹ️", unsafe_allow_html=True)
+            if help_text:
+                with st.tooltip(help_text):
+                    st.markdown("ℹ️", unsafe_allow_html=True)
 
 class DataVisualizer:
     @staticmethod
@@ -364,14 +364,12 @@ class DataVisualizer:
 # ========== APPLICATION ==========
 class NOMLEANDashboard:
     def __init__(self):
-        class NOMLEANDashboard:
-            def __init__(self):
-                self.load_data()
-                self.initialize_session_state()
-                self.initialize_sidebar()
-                self.render_header()
-                self.render_kpis()
-                self.render_main_content()
+        self.load_data()
+        self.initialize_session_state()
+        self.initialize_sidebar()
+        self.render_header()
+        self.render_kpis()
+        self.render_main_content()
     
     def initialize_session_state(self):
         """Initialize session state variables"""
@@ -381,6 +379,12 @@ class NOMLEANDashboard:
     def load_data(self):
         """Load and cache data"""
         self.nom_df, self.lean_df, self.bienestar_df, self.action_plans_df = DataService.load_data()
+        
+        # Set default values for targets
+        self.nom_target = 90
+        self.lean_target = 80
+        self.wellbeing_target = 85
+        self.efficiency_target = 75
         
         # Set default dates if not in session state
         if 'start_date' not in st.session_state:
@@ -396,19 +400,6 @@ class NOMLEANDashboard:
         st.session_state.action_plans = updated_plans
         st.toast("✅ Plan de acción registrado correctamente", icon="✅")
         st.rerun()
-        self.nom_df, self.lean_df, self.bienestar_df, self.action_plans_df = DataService.load_data()
-        self.start_date = date(2024, 1, 1)
-        self.end_date = date(2024, 4, 1)
-        self.departments_filter = ['Producción', 'Calidad', 'Logística']
-        self.nom_target = 90
-        self.lean_target = 80
-        self.wellbeing_target = 85
-        self.efficiency_target = 75
-        
-        self.initialize_sidebar()
-        self.render_header()
-        self.render_kpis()
-        self.render_main_content()
     
     def initialize_sidebar(self):
         """Configure the sidebar filters and controls"""
@@ -572,18 +563,17 @@ class NOMLEANDashboard:
         # Filter data
         filtered_nom = self.nom_df[self.nom_df['Departamento'].isin(self.departments_filter)]
         
-        # Validate filtered data
         # Enhanced empty state
         if filtered_nom.empty:
             col1, col2, col3 = st.columns([1, 3, 1])
-        with col2:
-            st.image("https://via.placeholder.com/300x150?text=No+Data+Available", width=300)
-            st.markdown("""
-            <div style="text-align: center; margin-top: 1rem;">
-            <h4 style="color: #6b7280;">No hay datos disponibles</h4>
-            <p style="color: #9ca3af;">Pruebe con otros filtros o fechas</p>
-            </div>
-            """, unsafe_allow_html=True)
+            with col2:
+                st.image("https://via.placeholder.com/300x150?text=No+Data+Available", width=300)
+                st.markdown("""
+                <div style="text-align: center; margin-top: 1rem;">
+                <h4 style="color: #6b7280;">No hay datos disponibles</h4>
+                <p style="color: #9ca3af;">Pruebe con otros filtros o fechas</p>
+                </div>
+                """, unsafe_allow_html=True)
             return
         
         # Create tabs for different views
@@ -739,22 +729,22 @@ class NOMLEANDashboard:
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
             metrics = ['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']
-for metric in metrics:
-    if lean_radar[metric].max() - lean_radar[metric].min() > 0:
-        lean_radar[metric] = (lean_radar[metric] - lean_radar[metric].min()) / (lean_radar[metric].max() - lean_radar[metric].min())
-    else:
-        lean_radar[metric] = 0.5  # Default midpoint value when no variation
+            for metric in metrics:
+                if lean_radar[metric].max() - lean_radar[metric].min() > 0:
+                    lean_radar[metric] = (lean_radar[metric] - lean_radar[metric].min()) / (lean_radar[metric].max() - lean_radar[metric].min())
+                else:
+                    lean_radar[metric] = 0.5  # Default midpoint value when no variation
             
-        fig_radar = DataVisualizer.create_radar_chart(
+            fig_radar = DataVisualizer.create_radar_chart(
                 lean_radar,
                 categories=['Eficiencia', 'Reducción', '5S', 'SMED'],
                 values=['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED'],
                 title="Comparación de Métricas LEAN"
             )
-        st.plotly_chart(fig_radar, use_container_width=True)
+            st.plotly_chart(fig_radar, use_container_width=True)
             
             # Projects summary
-        with st.expander("📌 Detalle de Proyectos", expanded=True):
+            with st.expander("📌 Detalle de Proyectos", expanded=True):
                 st.dataframe(
                     filtered_lean[['Departamento', 'Proyectos Activos', '5S_Score', 'SMED']]
                     .set_index('Departamento')
@@ -768,10 +758,10 @@ for metric in metrics:
         st.markdown("#### Tendencias de Bienestar Organizacional")
         
         # Filter wellbeing data by date range
-       filtered_bienestar = self.bienestar_df[
-       (self.bienestar_df['Mes'].dt.date >= pd.to_datetime(self.start_date).date()) & 
-       (self.bienestar_df['Mes'].dt.date <= pd.to_datetime(self.end_date).date())
-   ]
+        filtered_bienestar = self.bienestar_df[
+            (self.bienestar_df['Mes'].dt.date >= pd.to_datetime(self.start_date).date()) & 
+            (self.bienestar_df['Mes'].dt.date <= pd.to_datetime(self.end_date).date())
+        ]
         
         if filtered_bienestar.empty:
             st.warning("No hay datos disponibles para el período seleccionado")
@@ -944,20 +934,19 @@ for metric in metrics:
                 
                 if submitted:
                     validation_errors = []
-                if not dept:
-                    validation_errors.append("Seleccione un departamento")
-                if not problema or len(problema.strip()) < 10:
-                    validation_errors.append("Describa el problema con más detalle (mínimo 10 caracteres)")
-                if not accion or len(accion.strip()) < 10:
-                    validation_errors.append("Describa la acción con más detalle (mínimo 10 caracteres)")
-                if not responsable or len(responsable.strip()) < 3:
-                    validation_errors.append("Ingrese un nombre válido para el responsable")
+                    if not dept:
+                        validation_errors.append("Seleccione un departamento")
+                    if not problema or len(problema.strip()) < 10:
+                        validation_errors.append("Describa el problema con más detalle (mínimo 10 caracteres)")
+                    if not accion or len(accion.strip()) < 10:
+                        validation_errors.append("Describa la acción con más detalle (mínimo 10 caracteres)")
+                    if not responsable or len(responsable.strip()) < 3:
+                        validation_errors.append("Ingrese un nombre válido para el responsable")
 
-                if validation_errors:
-                    for error in validation_errors:
-                    st.error(error)
-                    st.stop()
-                        st.error("Por favor complete todos los campos obligatorios")
+                    if validation_errors:
+                        for error in validation_errors:
+                            st.error(error)
+                        st.stop()
                     else:
                         # In a real app, this would save to a database
                         new_plan = pd.DataFrame([{
@@ -972,9 +961,7 @@ for metric in metrics:
                             '% Avance': avance
                         }])
                         
-                        self.action_plans_df = pd.concat([self.action_plans_df, new_plan], ignore_index=True)
-                        st.toast("✅ Plan de acción registrado correctamente", icon="✅")
-                        st.rerun()
+                        self.save_action_plan(new_plan)
 
 # ========== RUN APPLICATION ==========
 if __name__ == "__main__":
