@@ -1,0 +1,12 @@
+# Core dashboard libraries
+streamlit>=1.28.0
+pandas>=1.5.0
+plotly>=5.15.0
+
+# PDF generation
+pdfkit>=1.0.0
+
+# No pip install needed for:
+# - smtplib (standard lib)
+# - email (standard lib)
+# - io (standard lib)
