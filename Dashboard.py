@@ -228,51 +228,41 @@ class KPICard:
                 delta_text = f"{delta:.1f}% bajo meta"
                 icon_bg = "rgba(239, 68, 68, 0.1)"
         
-        with st.container():
-            card_content = f"""
-            <div class="card" style="border-left: 4px solid {color};">
-                <div style="display: flex; align-items: center; gap: {ds.SPACING['sm']}; margin-bottom: {ds.SPACING['sm']};">
-                    <div style="background: {icon_bg}; width: 36px; height: 36px; border-radius: {ds.RADIUS['full']}; 
-                                display: flex; align-items: center; justify-content: center; color: {color};">
-                        {icon}
+            with st.container():
+                card_content = f"""
+                <div class="card" style="border-left: 4px solid {color};">
+                    <div style="display: flex; align-items: center; gap: {ds.SPACING['sm']}; margin-bottom: {ds.SPACING['sm']};">
+                        <div style="background: {icon_bg}; width: 36px; height: 36px; border-radius: {ds.RADIUS['full']}; 
+                                    display: flex; align-items: center; justify-content: center; color: {color};">
+                            {icon}
+                        </div>
+                        <div style="font-weight: 600; color: {ds.COLORS['text']}; flex-grow: 1;">
+                            {title}
+                        </div>
+                        <div style="font-size: 0.875rem; color: {color};">
+                            {status}
+                        </div>
                     </div>
-                    <div style="font-weight: 600; color: {ds.COLORS['text']}; flex-grow: 1;">
-                        {title}
+                    <div style="font-size: 1.75rem; font-weight: 700; color: {color}; margin-bottom: {ds.SPACING['xs']};">
+                        {value:.1f}%
                     </div>
-                    <div style="font-size: 0.875rem; color: {color};">
-                        {status}
+                    <div style="font-size: 0.875rem; color: {ds.COLORS['text']}; margin-bottom: {ds.SPACING['sm']};">
+                        Meta: {target:.1f}% • {delta_text}
+                    </div>
+                    <div style="height: 6px; background: #f0f0f0; border-radius: {ds.RADIUS['full']}; overflow: hidden;">
+                        <div style="width: {percentage:.1f}%; height: 100%; background: {color};"></div>
                     </div>
                 </div>
-                <div style="font-size: 1.75rem; font-weight: 700; color: {color}; margin-bottom: {ds.SPACING['xs']};">
-                    {value:.1f}%
-                </div>
-                <div style="font-size: 0.875rem; color: {ds.COLORS['text']}; margin-bottom: {ds.SPACING['sm']};">
-                    Meta: {target:.1f}% • {delta_text}
-                </div>
-                <div style="height: 6px; background: #f0f0f0; border-radius: {ds.RADIUS['full']}; overflow: hidden;">
-                    <div style="width: {percentage:.1f}%; height: 100%; background: {color};"></div>
-                </div>
-            </div>
-            """
-            
-            if help_text:
-                st.markdown(f'<div title="{help_text}">{card_content}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(card_content, unsafe_allow_html=True)
+                """
                 
-    except (ValueError, TypeError) as e:
-        st.error(f"Error rendering KPI card: {str(e)}")
-        st.error(f"Value: {value}, Target: {target}")
-        
-        if help_text:
-            # For older Streamlit versions, use a simple hover text implementation
-            st.markdown(f"""
-            <div title="{help_text}">
-                {card_content}
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(card_content, unsafe_allow_html=True)
+                if help_text:
+                    st.markdown(f'<div title="{help_text}">{card_content}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(card_content, unsafe_allow_html=True)
+                
+        except (ValueError, TypeError) as e:
+            st.error(f"Error rendering KPI card: {str(e)}")
+            st.error(f"Value: {value}, Target: {target}")
 
 class DataVisualizer:
     @staticmethod
