@@ -2,9 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
-from datetime import datetime, date
-from sklearn.linear_model import LinearRegression
+from datetime import date
 
 # ---- CONFIGURACIÓN GENERAL ----
 st.set_page_config(
@@ -38,30 +36,26 @@ def cargar_datos():
     })
     return nom, lean, bienestar
 
-# Carga de datos inicial
-nom_df, lean_df, bienestar_df = cargar_datos()
-
 # ---- SIDEBAR ----
 with st.sidebar:
     st.title("Filtros Avanzados")
     fecha_inicio = st.date_input("Fecha de inicio", value=date(2025, 1, 1))
     fecha_fin = st.date_input("Fecha de fin", value=date(2025, 4, 1))
+
+    # Cargar datos
+    nom_df, lean_df, bienestar_df = cargar_datos()
+
     departamentos_filtro = st.multiselect(
         "Seleccionar Departamentos",
         options=nom_df['Departamento'].unique().tolist(),
         default=['Producción', 'Calidad', 'Logística']
     )
-    metricas = st.multiselect(
-        "Seleccionar Métricas",
-        ['NOM-035', 'Calidad', 'Productividad', 'Bienestar', 'LEAN'],
-        default=['NOM-035', 'Calidad']
-    )
-    st.markdown("---")
-    actualizar = st.button("🔄 Actualizar")
 
-if actualizar:
-    st.toast("Datos actualizados", icon="🔁")
-    st.experimental_rerun()
+    st.markdown("---")
+    if st.button("🔄 Actualizar"):
+        st.toast("Datos actualizados", icon="🔁")
+        st.cache_data.clear()  # Limpiar el caché
+        st.experimental_rerun()  # Rerun limpio con nuevos datos
 
 
 # ---- ENCABEZADO ----
