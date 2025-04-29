@@ -751,7 +751,7 @@ for metric in metrics:
                 values=['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED'],
                 title="Comparación de Métricas LEAN"
             )
-            st.plotly_chart(fig_radar, use_container_width=True)
+        st.plotly_chart(fig_radar, use_container_width=True)
             
             # Projects summary
             with st.expander("📌 Detalle de Proyectos", expanded=True):
