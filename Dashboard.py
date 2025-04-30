@@ -544,7 +544,7 @@ with tab1:
     st.markdown("#### Cumplimiento NOM-035 por Departamento")
     
     # Filter data
-    filtered_nom = nom_df[nom_df['Departamento'].isin(departamentos_filtro)]
+ 
     
     # Validate filtered data
     if filtered_nom.empty:
