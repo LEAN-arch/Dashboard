@@ -323,7 +323,7 @@ with cols[0]:
 with cols[1]: 
     kpi_card(
         round(lean_adoption), 
-        "Adopción LEAN", 
+        "Adopción LEAN 2.0", 
         lean_target, 
         "🔄",
         "Nivel de implementación de metodologías LEAN 2.0"
@@ -487,7 +487,7 @@ with tab2:
             # Waste reduction vs efficiency scatter plot
             fig_scatter = px.scatter(
                 filtered_lean,
-                x='Reducción Desperdicio',
+                x='Reducción de MURI/MURA/MUDA Psicosocial',
                 y='Eficiencia',
                 size='Proyectos Activos',
                 color='Departamento',
