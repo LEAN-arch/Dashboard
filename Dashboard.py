@@ -122,8 +122,8 @@ def load_data():
         'Eficiencia': np.random.randint(60, 95, len(DEPARTMENTS)),
         'Reducción Desperdicio': np.random.randint(5, 25, len(DEPARTMENTS)),
         'Proyectos Activos': np.random.randint(1, 6, len(DEPARTMENTS)),
-        '5S_Score': np.random.randint(60, 100, len(DEPARTMENTS)),
-        'Kaizen': np.random.randint(50, 90, len(DEPARTMENTS))
+        '5S+2_Score': np.random.randint(60, 100, len(DEPARTMENTS)),
+        'Kaizen Colectivo': np.random.randint(50, 90, len(DEPARTMENTS))
     })
     
     # Wellbeing Data
@@ -514,14 +514,14 @@ with tab2:
             # Normalize data for radar chart
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
-            lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'Kaizen']] = scaler.fit_transform(
+            lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S+2_Score', 'Kaizen Colectivo']] = scaler.fit_transform(
                 lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'Kaizen']]
             )
             
             for dept in filtered_lean['Departamento']:
                 row = lean_radar[lean_radar['Departamento'] == dept].iloc[0]
                 fig_radar.add_trace(go.Scatterpolar(
-                    r=[row['Eficiencia'], row['Reducción Desperdicio'], row['5S_Score'], row['Kaizen']],
+                    r=[row['Eficiencia'], row['Reducción Desperdicio'], row['5S+2_Score'], row['Kaizen Colectivo']],
                     theta=['Eficiencia', 'Reducción', '5S', 'Kaizen'],
                     fill='toself',
                     name=dept,
@@ -541,7 +541,7 @@ with tab2:
             # Projects summary
             with st.expander("📌 Detalle de Proyectos", expanded=True):
                 st.dataframe(
-                    filtered_lean[['Departamento', 'Proyectos Activos', '5S_Score', 'Kaizen']]
+                    filtered_lean[['Departamento', 'Proyectos Activos', '5S+2_Score', 'Kaizen Colectivo']]
                     .set_index('Departamento')
                     .style.background_gradient(cmap='Greens'),
                     use_container_width=True
