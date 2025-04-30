@@ -1594,7 +1594,7 @@ def main():
         st.error(f"Error al renderizar el dashboard: {e}")
         st.stop()
         
-       ---------------------------------------------------------------------------
+
 if st.button(
             "🖨️ Generar Reporte", 
             use_container_width=True,
