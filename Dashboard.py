@@ -557,30 +557,36 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                     with col2:
                         st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
                         
-                        # Get the summary data
-                        summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
+                        # Get summary data and ensure proper formatting
+                        summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1).reset_index()
                         
-                        # Reset index to make Departamento a column
-                        summary = summary.reset_index()
+                        # Create format dictionary for numeric columns only
+                        format_dict = {
+                            col: '{:.1f}' for col in summary.columns 
+                            if pd.api.types.is_numeric_dtype(summary[col]) and col != 'Departamento'
+                        }
                         
-                        # Create format dictionary for numeric columns
-                        format_dict = {}
-                        for col in summary.columns:
-                            if col != 'Departamento' and pd.api.types.is_numeric_dtype(summary[col]):
-                                format_dict[col] = '{:.1f}'
+                        # Create styled DataFrame
+                        styled_df = summary.style.format(format_dict)
                         
-                        # Apply the styling
-                        styled_summary = summary.style.format(format_dict)
-                        
-                        # Apply background gradient only to numeric columns that are in nom_metrics
-                        gradient_cols = [col for col in summary.columns 
-                                        if col in nom_metrics and pd.api.types.is_numeric_dtype(summary[col])]
+                        # Apply background gradient only to numeric columns in nom_metrics
+                        gradient_cols = [
+                            col for col in nom_metrics 
+                            if col in summary.columns and pd.api.types.is_numeric_dtype(summary[col])
+                        ]
                         
                         if gradient_cols:
-                            styled_summary = styled_summary.background_gradient(
+                            styled_df = styled_df.background_gradient(
                                 cmap='RdYlGn',
                                 subset=gradient_cols
                             )
+                        
+                        # Display the styled DataFrame
+                        st.dataframe(
+                            styled_df,
+                            use_container_width=True,
+                            height=450
+                        )
                         
                         # Display the styled DataFrame
                         st.dataframe(
