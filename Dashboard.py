@@ -1260,7 +1260,7 @@ def main():
             ),
             (
                 filtered_lean['Eficiencia'].mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0,
-                "Adopción LEAN",
+                "Adopción LEAN 2.0",
                 lean_target,
                 "🔄",
                 filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0
