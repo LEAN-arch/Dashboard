@@ -980,7 +980,10 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                         if "Planes de Acción" in data_options:
                             export_data.append(st.session_state.action_plans_df.assign(Tipo="Planes_Accion"))
                         
-                        combined_data = pd.concat(export_data, ignore_index=True)
+                        if export_data:
+                            combined_data = pd.concat(export_data, ignore_index=True)
+                        else:
+                            combined_data = pd.DataFrame()
                         
                         try:
                             if export_format == "CSV":
