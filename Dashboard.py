@@ -3,72 +3,54 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 import warnings
 warnings.filterwarnings('ignore')
 
-# ========== PAGE CONFIGURATION - MUST BE FIRST STREAMLIT COMMAND ==========
+# ========== CONSTANTS AND CONFIGURATION ==========
+DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
+
+# Professional color scheme
+COLOR_PALETTE = {
+    'primary': '#2c3e50',       # Dark blue
+    'secondary': '#3498db',     # Bright blue
+    'accent': '#2980b9',        # Medium blue
+    'success': '#27ae60',       # Green
+    'warning': '#f39c12',       # Orange
+    'danger': '#e74c3c',        # Red
+    'light': '#ecf0f1',         # Light gray
+    'dark': '#2c3e50',          # Dark blue
+    'background': '#f9f9f9',    # Off-white
+    'text': '#333333'           # Dark gray
+}
+
+# Font settings
+FONT_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+html, body, [class*="css"] {
+    font-family: 'Open Sans', sans-serif;
+}
+</style>
+"""
+st.markdown(FONT_CSS, unsafe_allow_html=True)
+
+# ========== PAGE CONFIGURATION ==========
 st.set_page_config(
-    page_title="NOM-035 & LEAN Dashboard",
+    page_title="Sistema Integral NOM-035 & LEAN 2.0",
     layout="wide",
     page_icon="📊",
     initial_sidebar_state="expanded"
 )
-
-# ========== CONSTANTS AND CONFIGURATION ==========
-DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
-
-class DesignSystem:
-    # Color palette
-    COLOR_PALETTE = {
-        'primary': '#2563eb',    # More vibrant blue
-        'secondary': '#4f46e5',  # Purple-blue
-        'accent': '#7c3aed',     # Vibrant purple
-        'success': '#10b981',    # Emerald green
-        'warning': '#f59e0b',    # Amber
-        'danger': '#ef4444',     # Red
-        'light': '#f3f4f6',      # Light gray
-        'dark': '#1f2937',       # Dark gray
-        'background': '#ffffff', # Pure white
-        'text': '#374151'        # Dark gray
-    }
-    
-    # Typography
-    FONT = "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    
-    # Spacing
-    SPACING = {
-        'xs': '0.25rem',
-        'sm': '0.5rem',
-        'md': '1rem',
-        'lg': '1.5rem',
-        'xl': '2rem'
-    }
-    
-    # Shadows
-    SHADOWS = {
-        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-    }
-    
-    # Border radius
-    RADIUS = {
-        'sm': '0.375rem',
-        'md': '0.5rem',
-        'lg': '0.75rem',
-        'full': '9999px'
-    }
-
 
 # Custom CSS for professional styling
 st.markdown(f"""
 <style>
     /* Main container */
     .main {{
- 
+        background-color: {COLOR_PALETTE['background']};
     }}
     
     /* Sidebar */
@@ -116,8 +98,6 @@ st.markdown(f"""
     }}
 </style>
 """, unsafe_allow_html=True)
-
-# [Rest of your code remains exactly the same...]
 
 # ========== DATA LOADING AND PROCESSING ==========
 @st.cache_data(ttl=600)
@@ -313,12 +293,8 @@ def kpi_card(value, title, target, icon="📊", help_text=None):
     """
     
     if help_text:
-        # Create a container with tooltip
-        container = st.container()
-        with container:
+        with st.tooltip(help_text):
             st.markdown(card_html, unsafe_allow_html=True)
-        # Add tooltip to the container
-        st.markdown(f"<span title='{help_text}'> </span>", unsafe_allow_html=True)
     else:
         st.markdown(card_html, unsafe_allow_html=True)
 
