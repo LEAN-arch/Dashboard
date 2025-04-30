@@ -157,6 +157,8 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.75rem;
     background-color: var(--card);
     color: var(--text);
+    visibility: visible !important;
+    font-size: 1rem;
 }
 
 .stTextInput > div > input:focus,
@@ -225,13 +227,9 @@ def load_data():
         # NOM-035 Data (2022-2025, monthly)
         dates = pd.date_range(start='2022-01-01', end='2025-12-31', freq='M')
         nom_data = []
-        logger.info(f"Type of nom_data: {type(nom_data)}")
         for dept in DEPARTMENTS:
             base_evals = np.linspace(80, 90, len(dates)) + np.random.normal(0, 3, len(dates))
             for i, date_val in enumerate(dates):
-                if not isinstance(nom_data, list):
-                    logger.error(f"nom_data is not a list: {type(nom_data)}")
-                    nom_data = []
                 nom_data.append({
                     'Departamento': dept,
                     'Mes': date_val,
@@ -245,13 +243,9 @@ def load_data():
 
         # LEAN Data (2022-2025, monthly)
         lean_data = []
-        logger.info(f"Type of lean_data: {type(lean_data)}")
         for dept in DEPARTMENTS:
             base_eff = np.linspace(75, 85, len(dates)) + np.random.normal(0, 4, len(dates))
             for i, date_val in enumerate(dates):
-                if not isinstance(lean_data, list):
-                    logger.error(f"lean_data is not a list: {type(lean_data)}")
-                    lean_data = []
                 lean_data.append({
                     'Departamento': dept,
                     'Mes': date_val,
@@ -350,17 +344,27 @@ def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column
     """Filter DataFrame by departments and date range."""
     try:
         logger.info(f"Filtering DataFrame with date_column={date_column}")
-        if date_column not in df.columns:
-            logger.warning(f"Date column {date_column} not in DataFrame")
-            return df.copy()
+        if df.empty or date_column not in df.columns:
+            logger.warning(f"DataFrame is empty or {date_column} not in columns")
+            return pd.DataFrame(columns=df.columns)
+        
+        # Ensure dates are in correct format
+        start_date = pd.Timestamp(start_date).date()
+        end_date = pd.Timestamp(end_date).date()
+        
+        # Convert date_column to date for comparison
+        df[date_column] = pd.to_datetime(df[date_column])
+        
         filtered_df = df[
             (df['Departamento'].isin(departamentos_filtro) if 'Departamento' in df.columns else True) &
             (df[date_column].dt.date >= start_date) &
             (df[date_column].dt.date <= end_date)
         ]
+        
         if filtered_df.empty:
             logger.warning("Filtered DataFrame is empty")
             return pd.DataFrame(columns=df.columns)
+        
         logger.info(f"Filtered DataFrame shape: {filtered_df.shape}")
         return filtered_df
     except Exception as e:
@@ -385,34 +389,30 @@ def render_sidebar():
             st.markdown("**Período**", help="Seleccione el rango de fechas para el análisis")
             col1, col2 = st.columns(2)
             with col1:
+                default_start = date(2022, 1, 1)
                 start_date = st.date_input(
                     "Inicio",
-                    value=date(2022, 1, 1),
+                    value=default_start,
                     min_value=date(2022, 1, 1),
                     max_value=date(2025, 12, 31),
                     key="date_start",
-                    format="DD/MM/YYYY"  # Ensure this is set
+                    help="Fecha de inicio del período de análisis",
+                    format="DD/MM/YYYY"
                 )
+                logger.info(f"Start date selected: {start_date}")
             with col2:
+                default_end = date(2025, 12, 31)
+                min_end_date = start_date if start_date >= date(2022, 1, 1) else default_start
                 end_date = st.date_input(
                     "Fin",
-                    value=date(2025, 12, 31),
-                    min_value=date(2022, 1, 1),
-                    max_value=date(2025, 12, 31),
-                    key="date_end",
-                    format="DD/MM/YYYY"  # Ensure this is set
-                )
-            with col2:
-                min_end_date = start_date if start_date else date(2022, 1, 1)
-                end_date = st.date_input(
-                    "Fin",
-                    value=date(2025, 12, 31),
+                    value=default_end,
                     min_value=min_end_date,
                     max_value=date(2025, 12, 31),
                     key="date_end",
                     help="Fecha de fin del período de análisis",
                     format="DD/MM/YYYY"
                 )
+                logger.info(f"End date selected: {end_date}")
             
             if start_date > end_date:
                 logger.warning("Start date is after end date")
@@ -568,17 +568,16 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                         height=450
                     )
                     
-                    for annotation in fig.layout.annotations:
-                        if annotation.text in nom_metrics:
-                            fig.add_hline(
-                                y=nom_target,
-                                line_dash="dash",
-                                line_color=COLOR_PALETTE['warning'],
-                                annotation_text="Meta",
-                                annotation_position="top right",
-                                row=1,
-                                col=int(annotation.text.split("=")[-1])
-                            )
+                    for i, metric in enumerate(nom_metrics):
+                        fig.add_hline(
+                            y=nom_target,
+                            line_dash="dash",
+                            line_color=COLOR_PALETTE['warning'],
+                            annotation_text="Meta",
+                            annotation_position="top right",
+                            row=(i // 2) + 1,
+                            col=(i % 2) + 1
+                        )
                     
                     fig.update_layout(
                         plot_bgcolor='rgba(0,0,0,0)',
@@ -594,7 +593,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                     )
                     
                     for i in range(len(nom_metrics)):
-                        fig.update_yaxes(range=[0, 100], row=1, col=i+1)
+                        fig.update_yaxes(range=[0, 100], row=(i // 2) + 1, col=(i % 2) + 1)
                     
                     st.plotly_chart(fig, use_container_width=True)
                 except Exception as e:
@@ -673,6 +672,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                     trend_data = filtered_nom.copy()
                     trend_data['Año'] = trend_data['Mes'].dt.year
                     trend_data = trend_data.groupby(['Departamento', 'Año'])[nom_metrics].mean().groupby('Departamento').pct_change().reset_index()
+                    trend_data = trend_data.fillna(0)  # Handle NaNs from pct_change
                     
                     melted_trend = pd.melt(
                         trend_data,
@@ -774,16 +774,16 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                     height=450
                 )
                 
-                for annotation in fig_lean.layout.annotations:
-                    if annotation.text in lean_metrics:
-                        fig_lean.add_hline(
-                            y=lean_target,
-                            line_dash="dash",
-                            line_color=COLOR_PALETTE['warning'],
-                            annotation_text="Meta",
-                            annotation_position="top right",
-                            row=1,
-                            col=int(annotation.text.split("=")[-1]))
+                for i, metric in enumerate(lean_metrics):
+                    fig_lean.add_hline(
+                        y=lean_target,
+                        line_dash="dash",
+                        line_color=COLOR_PALETTE['warning'],
+                        annotation_text="Meta",
+                        annotation_position="top right",
+                        row=(i // 2) + 1,
+                        col=(i % 2) + 1
+                    )
                 
                 fig_lean.update_layout(
                     title="Evolución de Métricas LEAN",
@@ -797,7 +797,7 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                 )
                 
                 for i in range(len(lean_metrics)):
-                    fig_lean.update_yaxes(range=[0, 100], row=1, col=i+1)
+                    fig_lean.update_yaxes(range=[0, 100], row=(i // 2) + 1, col=(i % 2) + 1)
                 
                 st.plotly_chart(fig_lean, use_container_width=True)
             except Exception as e:
@@ -848,18 +848,39 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                 logger.info("Rendering LEAN radar chart")
                 scaler = MinMaxScaler()
                 lean_radar = filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index()
+                
+                # Handle NaNs and ensure numeric data
+                lean_radar[lean_metrics] = lean_radar[lean_metrics].fillna(0)
+                lean_radar[lean_metrics] = lean_radar[lean_metrics].apply(pd.to_numeric, errors='coerce')
+                
+                # Scale only if data is valid
+                if lean_radar[lean_metrics].isna().all().all():
+                    logger.warning("All LEAN metrics are NaN")
+                    st.warning("⚠️ No hay datos válidos para el radar", icon="⚠️")
+                    return
+                
                 lean_radar[lean_metrics] = scaler.fit_transform(lean_radar[lean_metrics])
                 
                 fig_radar = go.Figure()
                 for _, row in lean_radar.iterrows():
+                    values = [row[m] for m in lean_metrics]
+                    if np.isnan(values).any():
+                        logger.warning(f"NaN values in radar data for {row['Departamento']}")
+                        continue
                     fig_radar.add_trace(go.Scatterpolar(
-                        r=[row[m] for m in lean_metrics],
+                        r=values,
                         theta=lean_metrics,
                         fill='toself',
                         name=row['Departamento'],
                         line=dict(width=2),
                         hovertemplate=f"<b>{row['Departamento']}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>"
                     ))
+                
+                if not fig_radar.data:
+                    logger.warning("No valid data for radar chart")
+                    st.warning("⚠️ No hay datos suficientes para el radar", icon="⚠️")
+                    return
+                
                 fig_radar.update_layout(
                     polar=dict(
                         radialaxis=dict(visible=True, range=[0, 1], showticklabels=False),
@@ -893,21 +914,14 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                 st.warning(f"Error al renderizar detalle: {e}", icon="⚠️")
 
 def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
+    logger.info("Rendering Wellbeing tab")
     st.markdown("#### 😊 Bienestar Organizacional", help="Indicadores de bienestar y clima laboral")
-    
-    # Ensure proper date filtering
-    filtered_bienestar = bienestar_df[
-        (bienestar_df['Mes'].dt.date >= start_date) & 
-        (bienestar_df['Mes'].dt.date <= end_date)
-    ]
+    filtered_bienestar = filter_dataframe(bienestar_df, [], start_date, end_date)
     
     if filtered_bienestar.empty:
-        st.warning("⚠️ No hay datos disponibles para el período seleccionado", icon="⚠️")
+        logger.warning("Filtered Wellbeing DataFrame is empty")
+        st.warning("⚠️ No hay datos disponibles para el período seleccionado. Ajuste las fechas en los filtros.", icon="⚠️")
         return
-    
-    # Convert to numeric where needed (critical fix)
-    numeric_cols = ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement']
-    filtered_bienestar[numeric_cols] = filtered_bienestar[numeric_cols].apply(pd.to_numeric, errors='coerce')
     
     col1, col2, col3 = st.columns(3, gap="medium")
     with col1:
@@ -957,8 +971,19 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
                 logger.info("Rendering Wellbeing line chart")
                 metrics = [col for col in ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement'] if col in filtered_bienestar.columns]
                 if not metrics:
+                    logger.warning("No valid metrics for Wellbeing line chart")
                     st.warning("⚠️ No hay métricas disponibles para tendencias", icon="⚠️")
                     return
+                
+                # Ensure numeric data
+                filtered_bienestar[metrics] = filtered_bienestar[metrics].apply(pd.to_numeric, errors='coerce')
+                filtered_bienestar = filtered_bienestar.dropna(subset=metrics)
+                
+                if filtered_bienestar.empty:
+                    logger.warning("No valid data after cleaning for Wellbeing line chart")
+                    st.warning("⚠️ No hay datos válidos para tendencias", icon="⚠️")
+                    return
+                
                 fig_bienestar = px.line(
                     filtered_bienestar,
                     x='Mes',
@@ -1003,8 +1028,19 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
                 logger.info("Rendering Wellbeing correlation matrix")
                 metrics = [col for col in ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Engagement'] if col in filtered_bienestar.columns]
                 if len(metrics) < 2:
+                    logger.warning("Not enough metrics for Wellbeing correlation matrix")
                     st.warning("⚠️ No hay suficientes métricas para correlaciones", icon="⚠️")
                     return
+                
+                # Ensure numeric data
+                filtered_bienestar[metrics] = filtered_bienestar[metrics].apply(pd.to_numeric, errors='coerce')
+                filtered_bienestar = filtered_bienestar.dropna(subset=metrics)
+                
+                if filtered_bienestar.empty:
+                    logger.warning("No valid data after cleaning for Wellbeing correlation matrix")
+                    st.warning("⚠️ No hay datos válidos para correlaciones", icon="⚠️")
+                    return
+                
                 corr_matrix = filtered_bienestar[metrics].corr()
                 fig_corr = px.imshow(
                     corr_matrix,
@@ -1060,7 +1096,7 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                             for v in x
                         ], subset=['Estado']
                     ).format({
-                        'Plazo': lambda x: x.strftime('%d/%m/%Y'),
+                        'Plazo': lambda x: x.strftime('%d/%m/%Y') if pd.notnull(x) else '',
                         '% Avance': '{:.0f}%',
                         'Costo Estimado': 'MXN {:,.0f}'
                     }).set_properties(**{'Progreso': 'width: 100px'}),
@@ -1242,26 +1278,13 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                     with st.spinner("Preparando datos..."):
                         try:
                             export_data = []
-                            logger.info(f"Type of export_data: {type(export_data)}")
                             if "NOM-035" in data_options and not nom_df.empty:
-                                if not isinstance(export_data, list):
-                                    logger.error(f"export_data is not a list: {type(export_data)}")
-                                    export_data = []
                                 export_data.append(nom_df.assign(Tipo="NOM-035"))
                             if "LEAN" in data_options and not lean_df.empty:
-                                if not isinstance(export_data, list):
-                                    logger.error(f"export_data is not a list: {type(export_data)}")
-                                    export_data = []
                                 export_data.append(lean_df.assign(Tipo="LEAN"))
                             if "Bienestar" in data_options and not bienestar_df.empty:
-                                if not isinstance(export_data, list):
-                                    logger.error(f"export_data is not a list: {type(export_data)}")
-                                    export_data = []
                                 export_data.append(bienestar_df.assign(Tipo="Bienestar"))
                             if "Planes de Acción" in data_options and not st.session_state.action_plans_df.empty:
-                                if not isinstance(export_data, list):
-                                    logger.error(f"export_data is not a list: {type(export_data)}")
-                                    export_data = []
                                 export_data.append(st.session_state.action_plans_df.assign(Tipo="Planes_Accion"))
                             
                             if not export_data:
