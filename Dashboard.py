@@ -1564,7 +1564,8 @@ with export_col1:
             default=["KPIs", "Gráficos", "Planes de Acción"]
         )
         
-       ---------------------------------------------------------------------------if st.button(
+       ---------------------------------------------------------------------------
+if st.button(
             "🖨️ Generar Reporte", 
             use_container_width=True,
             help="Genera un reporte PDF con los datos actuales"
