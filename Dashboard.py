@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 warnings.filterwarnings('ignore')
 
-# Page configuration
+# ========== PAGE CONFIGURATION ==========
 st.set_page_config(
     page_title="Sistema Integral NOM-035 & LEAN 2.0",
     layout="wide",
@@ -24,7 +24,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Constants and configuration
+# ========== CONSTANTS AND CONFIGURATION ==========
 DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI', 'Mantenimiento', 'R&D', 'Ingeniería']
 
 COLOR_PALETTE = {
@@ -41,10 +41,11 @@ COLOR_PALETTE = {
     'border': '#e2e8f0'
 }
 
-# Custom CSS
+# Custom CSS for modern, accessible, and responsive design
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
     --primary: #1e3a8a;
     --secondary: #3b82f6;
@@ -58,30 +59,36 @@ st.markdown("""
     --card: #ffffff;
     --border: #e2e8f0;
 }
+
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
     color: var(--text);
     background-color: var(--background);
     line-height: 1.6;
 }
+
 .main {
     padding: 1.5rem;
     max-width: 1400px;
     margin: 0 auto;
 }
+
 [data-testid="stSidebar"] {
     background-color: var(--primary);
     color: white;
     padding: 1rem;
 }
+
 [data-testid="stSidebar"] * {
     color: white !important;
 }
+
 h1, h2, h3, h4, h5, h6 {
     color: var(--primary);
     font-weight: 600;
     margin-bottom: 0.75rem;
 }
+
 .card {
     background-color: var(--card);
     border-radius: 8px;
@@ -89,6 +96,7 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     border: 1px solid var(--border);
 }
+
 .stButton > button {
     background-color: var(--secondary);
     color: white;
@@ -96,14 +104,17 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.5rem 1rem;
     font-weight: 500;
 }
+
 .stButton > button:hover {
     background-color: var(--accent);
 }
+
 [data-baseweb="tab-list"] {
     gap: 0.5rem;
     border-bottom: 1px solid var(--border);
     margin-bottom: 1rem;
 }
+
 [data-baseweb="tab"] {
     background-color: var(--card);
     border-radius: 6px 6px 0 0;
@@ -111,14 +122,17 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text);
     font-weight: 500;
 }
+
 [data-baseweb="tab"][aria-selected="true"] {
     background-color: var(--primary);
     color: white;
 }
+
 .stDataFrame {
     border-radius: 8px;
     border: 1px solid var(--border);
 }
+
 .stTextInput > div > input,
 .stSelectbox > div > select,
 .stDateInput > div > input {
@@ -130,35 +144,42 @@ h1, h2, h3, h4, h5, h6 {
     visibility: visible;
     font-size: 0.9rem;
 }
+
 .stDateInput > div > input {
     color: var(--text);
     background-color: white;
 }
+
 [data-testid="stSidebar"] .stDateInput > div > input {
     color: white;
     background-color: rgba(255, 255, 255, 0.1);
 }
+
 .stTextInput > div > input:focus,
 .stSelectbox > div > select:focus,
 .stDateInput > div > input:focus {
     border-color: var(--secondary);
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
+
 .error-message {
     color: var(--danger);
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }
+
 .progress-bar {
     height: 6px;
     background-color: var(--border);
     border-radius: 3px;
     overflow: hidden;
 }
+
 .progress-bar-fill {
     height: 100%;
     transition: width 0.3s ease;
 }
+
 @media (max-width: 768px) {
     .main {
         padding: 0.75rem;
@@ -174,7 +195,7 @@ h1, h2, h3, h4, h5, h6 {
 </style>
 """, unsafe_allow_html=True)
 
-# Data loading and processing
+# ========== DATA LOADING AND PROCESSING ==========
 @st.cache_data(ttl=600)
 def load_data():
     try:
@@ -182,7 +203,7 @@ def load_data():
         np.random.seed(42)
         n_depts = len(DEPARTMENTS)
 
-        # NOM-035 Data
+        # NOM-035 Data (2022-2025, monthly)
         dates = pd.date_range(start='2022-01-01', end='2025-12-31', freq='M')
         nom_data = []
         for dept in DEPARTMENTS:
@@ -197,11 +218,11 @@ def load_data():
                     'Satisfacción Laboral': np.clip(base_evals[i] + np.random.normal(0, 4), 65, 95).round(1)
                 })
         nom_df = pd.DataFrame(nom_data)
-        nom_df['Mes'] = pd.to_datetime(nom_df['Mes'])
+        nom_df['Mes'] = pd.to_datetime(nom_df['Mes'])  # Ensure datetime64
         nom_df = nom_df.drop_duplicates(subset=['Departamento', 'Mes'])
-        logger.info(f"NOM-035 DataFrame shape: {nom_df.shape}, Mes dtype: {nom_df['Mes'].dtype}")
+        logger.info(f"NOM-035 DataFrame shape: {nom_df.shape}, Mes dtype: {nom_df['Mes'].dtype}, Duplicates: {nom_df.duplicated(subset=['Departamento', 'Mes']).sum()}")
 
-        # LEAN Data
+        # LEAN Data (2022-2025, monthly)
         lean_data = []
         for dept in DEPARTMENTS:
             base_eff = np.linspace(75, 85, len(dates)) + np.random.normal(0, 4, len(dates))
@@ -217,11 +238,11 @@ def load_data():
                     'Tiempo Ciclo': np.clip(100 - base_eff[i] + np.random.normal(0, 5), 10, 50).round(1)
                 })
         lean_df = pd.DataFrame(lean_data)
-        lean_df['Mes'] = pd.to_datetime(lean_df['Mes'])
+        lean_df['Mes'] = pd.to_datetime(lean_df['Mes'])  # Ensure datetime64
         lean_df = lean_df.drop_duplicates(subset=['Departamento', 'Mes'])
-        logger.info(f"LEAN DataFrame shape: {lean_df.shape}, Mes dtype: {lean_df['Mes'].dtype}")
+        logger.info(f"LEAN DataFrame shape: {lean_df.shape}, Mes dtype: {lean_df['Mes'].dtype}, Duplicates: {lean_df.duplicated(subset=['Departamento', 'Mes']).sum()}")
 
-        # Bienestar Data
+        # Bienestar Data (2022-2025, monthly)
         base_well = np.linspace(70, 85, len(dates))
         bienestar_df = pd.DataFrame({
             'Mes': dates,
@@ -231,9 +252,9 @@ def load_data():
             'Encuestas': np.clip(np.round(80 + np.random.normal(0, 5, len(dates))), 75, 100),
             'Engagement': np.clip(base_well + np.random.normal(0, 3, len(dates)), 60, 90).round(1)
         })
-        bienestar_df['Mes'] = pd.to_datetime(bienestar_df['Mes'])
+        bienestar_df['Mes'] = pd.to_datetime(bienestar_df['Mes'])  # Ensure datetime64
         bienestar_df = bienestar_df.drop_duplicates(subset=['Mes'])
-        logger.info(f"Bienestar DataFrame shape: {bienestar_df.shape}, Mes dtype: {bienestar_df['Mes'].dtype}")
+        logger.info(f"Bienestar DataFrame shape: {bienestar_df.shape}, Mes dtype: {bienestar_df['Mes'].dtype}, Duplicates: {bienestar_df.duplicated(subset=['Mes']).sum()}")
 
         # Action Plans
         action_plans = pd.DataFrame({
@@ -275,9 +296,9 @@ def load_data():
             '% Avance': np.random.choice([0, 25, 50, 75, 100], 20),
             'Costo Estimado': np.random.randint(5000, 50000, 20)
         })
-        action_plans['Plazo'] = pd.to_datetime(action_plans['Plazo'])
+        action_plans['Plazo'] = pd.to_datetime(action_plans['Plazo'])  # Ensure datetime64
         action_plans = action_plans.drop_duplicates(subset=['ID', 'Departamento', 'Plazo'])
-        logger.info(f"Action Plans DataFrame shape: {action_plans.shape}, Plazo dtype: {action_plans['Plazo'].dtype}")
+        logger.info(f"Action Plans DataFrame shape: {action_plans.shape}, Plazo dtype: {action_plans['Plazo'].dtype}, Duplicates: {action_plans.duplicated(subset=['ID', 'Departamento', 'Plazo']).sum()}")
 
         return nom_df, lean_df, bienestar_df, action_plans
     except Exception as e:
@@ -305,27 +326,32 @@ if any(df is None for df in (nom_df, lean_df, bienestar_df)):
     st.error("No se pudieron cargar los datos.", icon="🚨")
     st.stop()
 
-# Helper functions
+# ========== HELPER FUNCTIONS ==========
 def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column='Mes'):
+    """Filter DataFrame by departments and date range, preserving datetime type and ensuring unique rows."""
     try:
         logger.info(f"Filtering DataFrame with date_column={date_column}")
         if df.empty or date_column not in df.columns:
             logger.warning(f"DataFrame is empty or {date_column} not in columns")
             return pd.DataFrame(columns=df.columns)
         
+        # Ensure dates are in correct format
         start_date = pd.Timestamp(start_date)
         end_date = pd.Timestamp(end_date)
         
+        # Convert date_column to datetime64
         df = df.copy()
         df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
         logger.info(f"{date_column} dtype after conversion: {df[date_column].dtype}")
         
+        # Remove duplicates based on Departamento and date_column
         if 'Departamento' in df.columns:
             df = df.drop_duplicates(subset=['Departamento', date_column], keep='last')
         else:
             df = df.drop_duplicates(subset=[date_column], keep='last')
         logger.info(f"Duplicates removed, DataFrame shape: {df.shape}")
         
+        # Filter
         mask = (
             (df[date_column] >= start_date) & 
             (df[date_column] <= end_date)
@@ -346,25 +372,14 @@ def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column
         st.warning(f"Error al filtrar datos: {e}", icon="⚠️")
         return pd.DataFrame(columns=df.columns)
 
-def export_to_csv(df, filename):
-    """Export DataFrame to CSV and provide download button."""
-    csv_buffer = io.StringIO()
-    df.to_csv(csv_buffer, index=False)
-    st.download_button(
-        label="📥 Descargar CSV",
-        data=csv_buffer.getvalue(),
-        file_name=filename,
-        mime="text/csv"
-    )
-
-# Sidebar
+# ========== SIDEBAR ==========
 def render_sidebar():
     with st.sidebar:
         logger.info("Rendering sidebar")
         st.markdown("""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
             <span style="font-size: 1.5rem;">📊</span>
-            <h2 style="margin: 0; color: white;">NOM-035 & LEAN</h2>
+            <h2 style="margin: 0; color: white;">NOM-035 & LEAN 2.0</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -431,30 +446,6 @@ def render_sidebar():
             wellbeing_target = st.slider("Meta Bienestar (%)", 50, 100, 85)
             efficiency_target = st.slider("Meta Eficiencia (%)", 50, 100, 75)
         
-        with st.expander("🛠 Configuración", expanded=False):
-            st.markdown("**Preferencias**")
-            theme = st.selectbox("Tema", ["Claro", "Oscuro"], index=0)
-            log_level = st.selectbox("Nivel de Registro", ["INFO", "DEBUG", "ERROR"], index=0)
-            if log_level == "DEBUG":
-                logger.setLevel(logging.DEBUG)
-            elif log_level == "ERROR":
-                logger.setLevel(logging.ERROR)
-            else:
-                logger.setLevel(logging.INFO)
-            if theme == "Oscuro":
-                st.markdown("""
-                <style>
-                html, body, [class*="css"] {
-                    background-color: #1f2937;
-                    color: #f8fafc;
-                }
-                .card {
-                    background-color: #374151;
-                    border: 1px solid #4b5563;
-                }
-                </style>
-                """, unsafe_allow_html=True)
-        
         st.markdown("---")
         if st.button("🔄 Actualizar", use_container_width=True):
             logger.info("Clearing cache and rerunning app")
@@ -472,13 +463,13 @@ def render_sidebar():
     logger.info("Sidebar rendered successfully")
     return start_date, end_date, departamentos_filtro, (nom_target, lean_target, wellbeing_target, efficiency_target), nom_metrics, lean_metrics
 
-# Header
+# ========== HEADER ==========
 def render_header(start_date, end_date):
     logger.info("Rendering header")
     st.markdown(f"""
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
         <div>
-            <h1 style="margin: 0;">Sistema Integral NOM-035 & LEAN 2.0</h1>
+            <h1 style="margin: 0;">Sistema Integral NOM-035-STPS-2018 & LEAN 2.0</h1>
             <p style="color: var(--muted); font-size: 1rem; margin: 0;">
                 Monitoreo Estratégico (2022-2025)
             </p>
@@ -494,7 +485,7 @@ def render_header(start_date, end_date):
     </div>
     """, unsafe_allow_html=True)
 
-# KPI cards
+# ========== KPI CARDS ==========
 def kpi_card(value, title, target, icon, delta=None):
     logger.info(f"Rendering KPI card: {title}")
     delta_value = delta if delta is not None else value - target
@@ -521,21 +512,21 @@ def kpi_card(value, title, target, icon, delta=None):
     </div>
     """, unsafe_allow_html=True)
 
-# NOM-035 tab
+# ========== TABS ==========
 def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics):
     logger.info("Rendering NOM-035 tab")
     st.markdown("#### 📋 Cumplimiento NOM-035")
     
     if not nom_metrics:
         logger.warning("No NOM-035 metrics selected")
-        st.warning("Seleccione al menos una métrica NOM-035.", icon="⚠️")
+        st.warning("⚠️ Seleccione al menos una métrica NOM-035.", icon="⚠️")
         return
     
     filtered_nom = filter_dataframe(nom_df, departamentos_filtro, start_date, end_date)
     
     if filtered_nom.empty:
         logger.warning("Filtered NOM-035 DataFrame is empty")
-        st.warning("No hay datos para los filtros seleccionados.", icon="⚠️")
+        st.warning("⚠️ No hay datos para los filtros seleccionados.", icon="⚠️")
         return
     
     nom_view1, nom_view2, nom_view3 = st.tabs(["📊 Métricas", "🔍 Mapa de Riesgo", "📈 Tendencias"])
@@ -592,15 +583,13 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                 summary_cols = [col for col in nom_metrics + ['Incidentes'] if col in filtered_nom.columns]
                 if summary_cols:
                     summary = filtered_nom.groupby('Departamento')[summary_cols].mean().round(1)
-                    format_dict = {col: '{:.1f}' for col in summary.columns}
                     st.dataframe(
-                        summary.style.format(format_dict).background_gradient(cmap='RdYlGn'),
+                        summary.style.format('{:.1f}').background_gradient(cmap='RdYlGn'),
                         use_container_width=True,
                         height=400
                     )
-                    export_to_csv(summary, "nom035_summary.csv")
                 else:
-                    st.info("No hay métricas disponibles.", icon="ℹ️")
+                    st.info("ℹ️ No hay métricas disponibles.", icon="ℹ️")
             except Exception as e:
                 logger.error(f"Error rendering NOM-035 summary: {e}")
                 st.warning(f"Error al renderizar resumen: {e}", icon="⚠️")
@@ -612,7 +601,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                 scaler = MinMaxScaler()
                 metrics = [col for col in nom_metrics + ['Incidentes'] if col in filtered_nom.columns]
                 if not metrics:
-                    st.warning("No hay métricas para el mapa de riesgo.", icon="⚠️")
+                    st.warning("⚠️ No hay métricas para el mapa de riesgo.", icon="⚠️")
                     return
                 risk_data = filtered_nom.groupby('Departamento')[metrics].mean()
                 z_values = scaler.fit_transform(risk_data)
@@ -652,6 +641,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                     trend_data = filtered_nom.copy()
                     logger.info(f"Trend data Mes dtype: {trend_data['Mes'].dtype}")
                     
+                    # Ensure Mes is datetime64
                     if not pd.api.types.is_datetime64_any_dtype(trend_data['Mes']):
                         logger.warning("Mes column is not datetime64, attempting to convert")
                         trend_data['Mes'] = pd.to_datetime(trend_data['Mes'], errors='coerce')
@@ -704,21 +694,20 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
             </div>
             """, unsafe_allow_html=True)
 
-# LEAN tab
 def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics):
     logger.info("Rendering LEAN tab")
     st.markdown("#### 🔄 Progreso LEAN 2.0")
     
     if not lean_metrics:
         logger.warning("No LEAN metrics selected")
-        st.warning("Seleccione al menos una métrica LEAN.", icon="⚠️")
+        st.warning("⚠️ Seleccione al menos una métrica LEAN.", icon="⚠️")
         return
     
     filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
     
     if filtered_lean.empty:
         logger.warning("Filtered LEAN DataFrame is empty")
-        st.warning("No hay datos para los filtros seleccionados.", icon="⚠️")
+        st.warning("⚠️ No hay datos para los filtros seleccionados.", icon="⚠️")
         return
     
     col1, col2 = st.columns([3, 2])
@@ -800,11 +789,12 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                 scaler = MinMaxScaler()
                 lean_radar = filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index()
                 
+                # Ensure numeric data
                 lean_radar[lean_metrics] = lean_radar[lean_metrics].apply(pd.to_numeric, errors='coerce').fillna(0)
                 
                 if lean_radar[lean_metrics].isna().all().all():
                     logger.warning("All LEAN metrics are NaN")
-                    st.warning("No hay datos válidos para el radar.", icon="⚠️")
+                    st.warning("⚠️ No hay datos válidos para el radar.", icon="⚠️")
                     return
                 
                 scaled_data = scaler.fit_transform(lean_radar[lean_metrics])
@@ -826,7 +816,7 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                 
                 if not fig_radar.data:
                     logger.warning("No valid data for radar chart")
-                    st.warning("No hay datos suficientes para el radar.", icon="⚠️")
+                    st.warning("⚠️ No hay datos suficientes para el radar.", icon="⚠️")
                     return
                 
                 fig_radar.update_layout(
@@ -847,295 +837,494 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
         st.markdown("**📌 Detalle de Proyectos**")
         with st.expander("📌 Detalle", expanded=True):
             try:
+                # Ensure unique columns
                 summary_cols = list(set(lean_metrics + ['Proyectos Activos'] if 'Proyectos Activos' not in lean_metrics else lean_metrics))
                 summary_cols = [col for col in summary_cols if col in filtered_lean.columns]
                 logger.info(f"Summary columns: {summary_cols}")
                 
                 if summary_cols:
                     summary = filtered_lean.groupby('Departamento')[summary_cols].mean().round(1).reset_index()
-                    for col in summary_cols:
-                        summary[col] = pd.to_numeric(summary[col], errors='coerce')
                     logger.info(f"Summary DataFrame index is unique: {summary.index.is_unique}, columns: {summary.columns.tolist()}")
-                    logger.info(f"Summary column dtypes: {summary.dtypes.to_dict()}")
-                    
-                    format_dict = {col: '{:.1f}' if pd.api.types.is_numeric_dtype(summary[col]) else '{}' for col in summary.columns}
-                    logger.info(f"Format dictionary: {format_dict}")
                     
                     try:
                         st.dataframe(
-                            summary.style.background_gradient(cmap='Greens', subset=summary_cols).format(format_dict),
+                            summary.style.background_gradient(cmap='Greens').format('{:.1f}'),
                             use_container_width=True
                         )
-                        export_to_csv(summary, "lean_summary.csv")
                     except Exception as e:
                         logger.warning(f"Styling failed: {e}, displaying without styling")
-                        st.dataframe(summary, use_container_width=True)
-                        st.warning(f"No se pudo aplicar estilo al resumen: {e}", icon="⚠️")
+                        st.dataframe(
+                            summary,
+                            use_container_width=True
+                        )
+                        st.warning(f"⚠️ No se pudo aplicar estilo al resumen: {e}", icon="⚠️")
                 else:
-                    st.info("No hay métricas seleccionadas.", icon="ℹ️")
+                    st.info("ℹ️ No hay métricas seleccionadas.", icon="ℹ️")
             except Exception as e:
                 logger.error(f"Error rendering LEAN summary: {e}")
                 st.warning(f"Error al renderizar detalle: {e}", icon="⚠️")
 
-# Wellbeing tab
-def render_wellbeing_tab(bienestar_df, wellbeing_target, start_date, end_date):
+def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
     logger.info("Rendering Wellbeing tab")
-    st.markdown("#### 😊 Índice de Bienestar")
+    st.markdown("#### 😊 Bienestar Organizacional")
+    
+    # Validate date range
+    min_date = bienestar_df['Mes'].min().date()
+    max_date = bienestar_df['Mes'].max().date()
+    start_date = max(start_date, min_date)
+    end_date = min(end_date, max_date)
+    logger.info(f"Adjusted date range: {start_date} to {end_date}")
     
     filtered_bienestar = filter_dataframe(bienestar_df, [], start_date, end_date)
     
     if filtered_bienestar.empty:
-        logger.warning("Filtered Bienestar DataFrame is empty")
-        st.warning("No hay datos para los filtros seleccionados.", icon="⚠️")
-        return
+        logger.warning("Filtered Wellbeing DataFrame is empty, using full dataset")
+        filtered_bienestar = bienestar_df.copy()
+        st.warning("⚠️ No hay datos para el período seleccionado, mostrando todos los datos.", icon="⚠️")
     
-    col1, col2 = st.columns([3, 2])
+    logger.info(f"Filtered Wellbeing DataFrame shape: {filtered_bienestar.shape}")
+    
+    col1, col2, col3 = st.columns(3)
     with col1:
-        with st.spinner("Cargando gráfico..."):
+        try:
+            delta = filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0] if len(filtered_bienestar) > 1 else 0
+            st.metric(
+                label="Encuestas Completadas",
+                value=f"{filtered_bienestar['Encuestas'].mean():.0f}%",
+                delta=f"{delta:+.0f}%"
+            )
+        except Exception as e:
+            logger.error(f"Error rendering Encuestas metric: {e}")
+            st.warning(f"Error: {e}", icon="⚠️")
+    with col2:
+        try:
+            delta = filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0] if len(filtered_bienestar) > 1 else 0
+            st.metric(
+                label="Ausentismo",
+                value=f"{filtered_bienestar['Ausentismo'].iloc[-1]:.1f}%",
+                delta=f"{delta:+.1f}%",
+                delta_color="inverse"
+            )
+        except Exception as e:
+            logger.error(f"Error rendering Ausentismo metric: {e}")
+            st.warning(f"Error: {e}", icon="⚠️")
+    with col3:
+        try:
+            delta = filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0] if len(filtered_bienestar) > 1 else 0
+            st.metric(
+                label="Rotación",
+                value=f"{filtered_bienestar['Rotación'].iloc[-1]:.1f}%",
+                delta=f"{delta:+.1f}%",
+                delta_color="inverse"
+            )
+        except Exception as e:
+            logger.error(f"Error rendering Rotación metric: {e}")
+            st.warning(f"Error: {e}", icon="⚠️")
+    
+    wellbeing_view1, wellbeing_view2 = st.tabs(["📈 Tendencias", "🔍 Correlaciones"])
+    
+    with wellbeing_view1:
+        with st.spinner("Cargando tendencias..."):
             try:
                 logger.info("Rendering Wellbeing line chart")
-                metrics = ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement']
-                melted_data = pd.melt(
+                metrics = [col for col in ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement'] if col in filtered_bienestar.columns]
+                if not metrics:
+                    logger.warning("No valid metrics for Wellbeing line chart")
+                    st.warning("⚠️ No hay métricas disponibles.", icon="⚠️")
+                    return
+                
+                filtered_bienestar[metrics] = filtered_bienestar[metrics].apply(pd.to_numeric, errors='coerce').fillna(0)
+                logger.info(f"Valid metrics: {metrics}")
+                
+                if len(filtered_bienestar) < 1:
+                    logger.warning("No valid data for Wellbeing line chart")
+                    st.warning("⚠️ No hay datos válidos.", icon="⚠️")
+                    return
+                
+                fig_bienestar = px.line(
                     filtered_bienestar,
-                    id_vars=['Mes'],
-                    value_vars=metrics,
-                    var_name='Métrica',
-                    value_name='Valor'
-                )
-                fig_well = px.line(
-                    melted_data,
                     x='Mes',
-                    y='Valor',
-                    color='Métrica',
-                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
-                    labels={'Valor': '%'},
+                    y=metrics,
+                    markers=True,
+                    color_discrete_sequence=[
+                        COLOR_PALETTE['success'],
+                        COLOR_PALETTE['danger'],
+                        COLOR_PALETTE['warning'],
+                        COLOR_PALETTE['accent']
+                    ],
+                    labels={'value': '%', 'variable': 'Métrica'},
                     height=400
                 )
-                fig_well.add_hline(
+                fig_bienestar.add_hline(
                     y=wellbeing_target,
                     line_dash="dash",
                     line_color=COLOR_PALETTE['warning'],
                     annotation_text="Meta"
                 )
-                fig_well.update_layout(
+                fig_bienestar.update_layout(
+                    title="Evolución Mensual",
                     yaxis_range=[0, 100],
-                    legend_title_text='Métrica',
+                    legend_title="Métrica",
                     margin=dict(l=20, r=20, t=40, b=20),
                     font=dict(family="Inter", size=12),
                     hovermode="x unified"
                 )
-                st.plotly_chart(fig_well, use_container_width=True)
+                st.plotly_chart(fig_bienestar, use_container_width=True)
             except Exception as e:
                 logger.error(f"Error rendering Wellbeing line chart: {e}")
-                st.warning(f"Error al renderizar gráfico: {e}", icon="⚠️")
+                st.warning(f"Error al renderizar tendencias: {e}", icon="⚠️")
     
-    with col2:
-        st.markdown("**📊 Resumen**")
-        try:
-            summary_cols = ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement']
-            summary = filtered_bienestar[summary_cols].mean().to_frame().T.round(1)
-            format_dict = {col: '{:.1f}' for col in summary_cols}
-            st.dataframe(
-                summary.style.format(format_dict).background_gradient(cmap='RdYlGn'),
-                use_container_width=True
-            )
-            export_to_csv(filtered_bienestar, "bienestar_data.csv")
-        except Exception as e:
-            logger.error(f"Error rendering Wellbeing summary: {e}")
-            st.warning(f"Error al renderizar resumen: {e}", icon="⚠️")
-        
-        st.markdown("**📌 Tendencias**")
-        try:
-            trend_data = filtered_bienestar.copy()
-            if not pd.api.types.is_datetime64_any_dtype(trend_data['Mes']):
-                trend_data['Mes'] = pd.to_datetime(trend_data['Mes'], errors='coerce')
-            trend_data['Año'] = trend_data['Mes'].dt.year
-            trend_summary = trend_data.groupby('Año')['Índice Bienestar'].mean().pct_change().to_frame().reset_index()
-            trend_summary.columns = ['Año', 'Cambio']
-            trend_summary['Cambio'] = trend_summary['Cambio'].fillna(0)
-            fig_trend = px.bar(
-                trend_summary,
-                x='Año',
-                y='Cambio',
-                labels={'Cambio': 'Cambio Anual (%)'},
-                height=200,
-                color_discrete_sequence=[COLOR_PALETTE['primary']]
-            )
-            fig_trend.add_hline(
-                y=0,
-                line_dash="dash",
-                line_color=COLOR_PALETTE['muted'],
-                annotation_text="Neutral"
-            )
-            fig_trend.update_layout(
-                margin=dict(l=20, r=20, t=20, b=20),
-                font=dict(family="Inter", size=12)
-            )
-            st.plotly_chart(fig_trend, use_container_width=True)
-        except Exception as e:
-            logger.error(f"Error rendering Wellbeing trends: {e}")
-            st.warning(f"Error al renderizar tendencias: {e}", icon="⚠️")
-
-# Action Plans tab
-def render_action_plans_tab(action_plans_df, departamentos_filtro, start_date, end_date):
-    logger.info("Rendering Action Plans tab")
-    st.markdown("#### 🛠 Planes de Acción")
-    
-    filtered_plans = filter_dataframe(action_plans_df, departamentos_filtro, start_date, end_date, date_column='Plazo')
-    
-    if filtered_plans.empty:
-        logger.warning("Filtered Action Plans DataFrame is empty")
-        st.warning("No hay planes de acción para los filtros seleccionados.", icon="⚠️")
-        return
-    
-    col1, col2 = st.columns([3, 2])
-    with col1:
-        with st.spinner("Cargando tabla..."):
+    with wellbeing_view2:
+        with st.spinner("Cargando correlaciones..."):
             try:
-                logger.info("Rendering Action Plans table")
-                display_cols = ['Departamento', 'Problema', 'Acción', 'Responsable', 'Plazo', 'Estado', '% Avance']
-                format_dict = {'% Avance': '{:.0f}', 'Plazo': '{:%d/%m/%Y}'}
-                st.dataframe(
-                    filtered_plans[display_cols].style.format(format_dict).background_gradient(cmap='Blues', subset=['% Avance']),
-                    use_container_width=True,
+                logger.info("Rendering Wellbeing correlation matrix")
+                metrics = [col for col in ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Engagement'] if col in filtered_bienestar.columns]
+                if len(metrics) < 2:
+                    logger.warning("Not enough metrics for correlation matrix")
+                    st.warning("⚠️ No hay suficientes métricas.", icon="⚠️")
+                    return
+                
+                filtered_bienestar[metrics] = filtered_bienestar[metrics].apply(pd.to_numeric, errors='coerce')
+                filtered_bienestar = filtered_bienestar.dropna(subset=metrics)
+                
+                if filtered_bienestar.empty:
+                    logger.warning("No valid data for correlation matrix")
+                    st.warning("⚠️ No hay datos válidos.", icon="⚠️")
+                    return
+                
+                corr_matrix = filtered_bienestar[metrics].corr()
+                fig_corr = px.imshow(
+                    corr_matrix,
+                    text_auto='.2f',
+                    color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
+                    range_color=[-1, 1],
+                    labels=dict(color="Correlación"),
                     height=400
                 )
-                export_to_csv(filtered_plans, "action_plans.csv")
-            except Exception as e:
-                logger.error(f"Error rendering Action Plans table: {e}")
-                st.warning(f"Error al renderizar tabla: {e}", icon="⚠️")
-        
-        with st.spinner("Cargando cronograma..."):
-            try:
-                logger.info("Rendering Action Plans Gantt chart")
-                gantt_data = filtered_plans.copy()
-                gantt_data['Inicio'] = gantt_data['Plazo'] - pd.Timedelta(days=30)
-                gantt_data['Fin'] = gantt_data['Plazo']
-                fig_gantt = px.timeline(
-                    gantt_data,
-                    x_start='Inicio',
-                    x_end='Fin',
-                    y='Acción',
-                    color='% Avance',
-                    hover_data=['Departamento', 'Responsable', 'Estado'],
-                    color_continuous_scale='Blues',
-                    height=400
-                )
-                fig_gantt.update_yaxes(autorange="reversed")
-                fig_gantt.update_layout(
-                    title="Cronograma de Planes",
-                    xaxis_title="Fecha",
-                    yaxis_title="Acción",
-                    margin=dict(l=20, r=20, t=40, b=20),
+                fig_corr.update_layout(
+                    title="Matriz de Correlación",
+                    margin=dict(l=40, r=40, t=50, b=40),
                     font=dict(family="Inter", size=12)
                 )
-                st.plotly_chart(fig_gantt, use_container_width=True)
+                st.plotly_chart(fig_corr, use_container_width=True)
+                st.markdown("""
+                <div class="card">
+                    <p style="font-size: 0.8rem;">
+                        <strong>Interpretación:</strong> Valores cercanos a 1 indican correlación positiva, -1 negativa, 0 ninguna.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
             except Exception as e:
-                logger.error(f"Error rendering Action Plans Gantt chart: {e}")
-                st.warning(f"Error al renderizar cronograma: {e}", icon="⚠️")
+                logger.error(f"Error rendering Wellbeing correlation: {e}")
+                st.warning(f"Error al renderizar correlaciones: {e}", icon="⚠️")
+
+def render_action_plans_tab(departamentos_filtro, start_date, end_date):
+    logger.info("Rendering Action Plans tab")
+    st.markdown("#### 📝 Planes de Acción")
+    filtered_plans = filter_dataframe(st.session_state.action_plans_df, departamentos_filtro, start_date, end_date, date_column='Plazo')
     
-    with col2:
-        st.markdown("**📊 Progreso por Departamento**")
-        with st.spinner("Cargando gráfico..."):
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown("**📌 Planes Registrados**")
+        if filtered_plans.empty:
+            logger.warning("Filtered Action Plans DataFrame is empty")
+            st.info("ℹ️ No hay planes para los filtros seleccionados.", icon="ℹ️")
+        else:
+            def progress_bar(row):
+                color = COLOR_PALETTE['success'] if row['% Avance'] == 100 else COLOR_PALETTE['warning'] if row['% Avance'] > 0 else COLOR_PALETTE['danger']
+                return f'<div class="progress-bar"><div class="progress-bar-fill" style="width: {row["% Avance"]}%; background: {color};"></div></div>'
+            
+            styled_plans = filtered_plans.copy()
+            styled_plans['Progreso'] = styled_plans.apply(progress_bar, axis=1)
             try:
-                logger.info("Rendering Action Plans progress chart")
-                progress_data = filtered_plans.groupby('Departamento')['% Avance'].mean().reset_index()
-                fig_progress = px.bar(
-                    progress_data,
-                    x='Departamento',
-                    y='% Avance',
-                    color='Departamento',
-                    color_discrete_sequence=[COLOR_PALETTE['primary']],
-                    labels={'% Avance': 'Progreso (%)'},
+                st.dataframe(
+                    styled_plans.style.apply(
+                        lambda x: [
+                            f"background-color: {COLOR_PALETTE['success']}; color: white" if v == 'Completado'
+                            else f"background-color: {COLOR_PALETTE['warning']}" if v == 'En progreso'
+                            else f"background-color: {COLOR_PALETTE['danger']}; color: white"
+                            for v in x
+                        ], subset=['Estado']
+                    ).format({
+                        'Plazo': lambda x: x.strftime('%d/%m/%Y') if pd.notnull(x) else '',
+                        '% Avance': '{:.0f}%',
+                        'Costo Estimado': 'MXN {:,.0f}'
+                    }),
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        'Progreso': st.column_config.TextColumn('Progreso', width="small")
+                    },
                     height=400
                 )
-                fig_progress.update_layout(
-                    yaxis_range=[0, 100],
-                    showlegend=False,
+            except Exception as e:
+                logger.error(f"Error rendering Action Plans table: {e}")
+                st.warning(f"Error al renderizar planes: {e}", icon="⚠️")
+    
+    with col2:
+        st.markdown("**📊 Resumen por Estado**")
+        if not filtered_plans.empty:
+            try:
+                status_summary = filtered_plans['Estado'].value_counts().reset_index()
+                fig_status = px.pie(
+                    status_summary,
+                    values='count',
+                    names='Estado',
+                    color='Estado',
+                    color_discrete_map={
+                        'Completado': COLOR_PALETTE['success'],
+                        'En progreso': COLOR_PALETTE['warning'],
+                        'Pendiente': COLOR_PALETTE['danger']
+                    },
+                    height=250
+                )
+                fig_status.update_layout(
                     margin=dict(l=20, r=20, t=20, b=20),
                     font=dict(family="Inter", size=12)
                 )
-                st.plotly_chart(fig_progress, use_container_width=True)
+                st.plotly_chart(fig_status, use_container_width=True)
             except Exception as e:
-                logger.error(f"Error rendering Action Plans progress chart: {e}")
-                st.warning(f"Error al renderizar gráfico: {e}", icon="⚠️")
+                logger.error(f"Error rendering Action Plans pie chart: {e}")
+                st.warning(f"Error al renderizar resumen: {e}", icon="⚠️")
         
-        st.markdown("**✏️ Editar Plan**")
-        with st.form("edit_plan_form"):
-            plan_id = st.selectbox("Seleccionar ID del Plan", options=filtered_plans['ID'].unique())
-            selected_plan = filtered_plans[filtered_plans['ID'] == plan_id].iloc[0]
+        st.markdown("**📅 Vencimientos Próximos**")
+        today = date.today()
+        upcoming = filtered_plans[filtered_plans['Plazo'].dt.date <= today + timedelta(days=30)]
+        if not upcoming.empty:
+            for _, row in upcoming.iterrows():
+                days_left = (row['Plazo'].date() - today).days
+                color = COLOR_PALETTE['danger'] if days_left < 7 else COLOR_PALETTE['warning']
+                text = f"Vence en {days_left} días" if days_left > 0 else f"Vencido hace {-days_left} días"
+                st.markdown(f"""
+                <div class="card">
+                    <div style="font-weight: 600;">{row['Departamento']}</div>
+                    <div style="font-size: 0.8rem; color: var(--muted);">{row['Problema'][:30]}...</div>
+                    <div style="font-size: 0.8rem; color: {color};">{text}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("ℹ️ No hay vencimientos próximos.", icon="ℹ️")
+    
+    with st.expander("➕ Nuevo Plan", expanded=False):
+        with st.form("nuevo_plan_form", clear_on_submit=True):
+            st.markdown("**Registrar Nuevo Plan**")
+            col1, col2 = st.columns(2)
+            with col1:
+                dept = st.selectbox("Departamento", DEPARTMENTS)
+                problema = st.text_area("Problema", max_chars=200)
+                prioridad = st.selectbox("Prioridad", ["Alta", "Media", "Baja"])
+                costo = st.number_input("Costo Estimado (MXN)", min_value=0, value=10000, step=1000)
+            with col2:
+                accion = st.text_area("Acción", max_chars=200)
+                responsable = st.text_input("Responsable")
+                plazo = st.date_input(
+                    "Plazo",
+                    min_value=today,
+                    value=today + timedelta(days=30),
+                    format="DD/MM/YYYY"
+                )
+                avance = st.slider("% Avance", 0, 100, 0)
             
-            problema = st.text_input("Problema", value=selected_plan['Problema'])
-            accion = st.text_input("Acción", value=selected_plan['Acción'])
-            responsable = st.text_input("Responsable", value=selected_plan['Responsable'])
-            plazo = st.date_input("Plazo", value=selected_plan['Plazo'], min_value=date(2022, 1, 1), max_value=date(2025, 12, 31))
-            estado = st.selectbox("Estado", options=['Pendiente', 'En progreso', 'Completado'], index=['Pendiente', 'En progreso', 'Completado'].index(selected_plan['Estado']))
-            avance = st.slider("% Avance", 0, 100, int(selected_plan['% Avance']))
+            submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
             
-            submit = st.form_submit_button("💾 Actualizar")
-            
-            if submit:
-                try:
-                    logger.info(f"Updating action plan ID: {plan_id}")
-                    st.session_state.action_plans_df.loc[
-                        st.session_state.action_plans_df['ID'] == plan_id,
-                        ['Problema', 'Acción', 'Responsable', 'Plazo', 'Estado', '% Avance']
-                    ] = [problema, accion, responsable, pd.Timestamp(plazo), estado, avance]
-                    st.success("Plan actualizado correctamente.", icon="✅")
-                    st.rerun()
-                except Exception as e:
-                    logger.error(f"Error updating action plan: {e}")
-                    st.error(f"Error al actualizar plan: {e}", icon="🚨")
+            if submitted:
+                errors = []
+                if not problema:
+                    errors.append("Problema es obligatorio")
+                if len(problema) > 200:
+                    errors.append("Problema no puede exceder 200 caracteres")
+                if not accion:
+                    errors.append("Acción es obligatoria")
+                if len(accion) > 200:
+                    errors.append("Acción no puede exceder 200 caracteres")
+                if not responsable:
+                    errors.append("Responsable es obligatorio")
+                if not re.match(r'^[A-Za-z\s]+$', responsable):
+                    errors.append("Responsable solo letras y espacios")
+                if plazo < today:
+                    errors.append("Plazo no puede ser anterior a hoy")
+                
+                if errors:
+                    for error in errors:
+                        st.markdown(f"<p class='error-message'>{error}</p>", unsafe_allow_html=True)
+                else:
+                    try:
+                        new_plan = pd.DataFrame([{
+                            'ID': len(st.session_state.action_plans_df) + 1,
+                            'Departamento': dept,
+                            'Problema': problema,
+                            'Acción': accion,
+                            'Responsable': responsable,
+                            'Plazo': pd.Timestamp(plazo),
+                            'Estado': 'Pendiente' if avance == 0 else 'En progreso' if avance < 100 else 'Completado',
+                            'Prioridad': prioridad,
+                            '% Avance': avance,
+                            'Costo Estimado': costo
+                        }])
+                        st.session_state.action_plans_df = pd.concat([st.session_state.action_plans_df, new_plan], ignore_index=True)
+                        st.success("✅ Plan registrado.", icon="✅")
+                        st.rerun()
+                    except Exception as e:
+                        logger.error(f"Error registering new plan: {e}")
+                        st.error(f"Error al registrar plan: {e}", icon="🚨")
 
-# Main function
+# ========== EXPORT AND REPORTING ==========
+def render_export_section(nom_df, lean_df, bienestar_df):
+    logger.info("Rendering export section")
+    st.markdown("---")
+    st.markdown("#### 📤 Exportar y Reportes")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        with st.expander("📄 Generar Reporte PDF", expanded=False):
+            st.markdown("**Configurar Reporte**")
+            report_type = st.selectbox("Tipo", ["Completo", "Resumido", "NOM-035", "LEAN", "Bienestar"])
+            include_charts = st.checkbox("Incluir gráficos", value=True)
+            if st.button("🖨️ Generar", use_container_width=True):
+                st.warning("⚠️ Generación de PDF no implementada.", icon="⚠️")
+    
+    with col2:
+        with st.expander("📧 Enviar por Correo", expanded=False):
+            st.markdown("**Enviar Reporte**")
+            email = st.text_input("Correo", placeholder="usuario@empresa.com")
+            subject = st.text_input("Asunto", value="Reporte NOM-035 & LEAN")
+            if st.button("📤 Enviar", use_container_width=True):
+                if not email:
+                    st.markdown("<p class='error-message'>Correo obligatorio</p>", unsafe_allow_html=True)
+                elif not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
+                    st.markdown("<p class='error-message'>Correo inválido</p>", unsafe_allow_html=True)
+                elif not subject:
+                    st.markdown("<p class='error-message'>Asunto obligatorio</p>", unsafe_allow_html=True)
+                else:
+                    st.warning("⚠️ Envío de correo no implementado.", icon="⚠️")
+    
+    with col3:
+        with st.expander("📊 Exportar Datos", expanded=False):
+            st.markdown("**Exportar Datos**")
+            export_format = st.radio("Formato", ["CSV", "Excel", "JSON"], horizontal=True)
+            data_options = st.multiselect("Datos", ["NOM-035", "LEAN 2.0", "Bienestar", "Planes de Acción"], default=["NOM-035", "LEAN 2.0", "Bienestar"])
+            if st.button("💾 Descargar", use_container_width=True):
+                if not data_options:
+                    st.markdown("<p class='error-message'>Seleccione al menos un tipo de datos</p>", unsafe_allow_html=True)
+                else:
+                    with st.spinner("Preparando datos..."):
+                        try:
+                            export_data = []
+                            if "NOM-035" in data_options and not nom_df.empty:
+                                export_data.append(nom_df.assign(Tipo="NOM-035"))
+                            if "LEAN" in data_options and not lean_df.empty:
+                                export_data.append(lean_df.assign(Tipo="LEAN"))
+                            if "Bienestar" in data_options and not bienestar_df.empty:
+                                export_data.append(bienestar_df.assign(Tipo="Bienestar"))
+                            if "Planes de Acción" in data_options and not st.session_state.action_plans_df.empty:
+                                export_data.append(st.session_state.action_plans_df.assign(Tipo="Planes_Accion"))
+                            
+                            if not export_data:
+                                logger.warning("No valid data to export")
+                                st.warning("⚠️ No hay datos válidos.", icon="⚠️")
+                                return
+                            
+                            combined_data = pd.concat([df for df in export_data], ignore_index=True, sort=False)
+                            
+                            if export_format == "CSV":
+                                data = combined_data.to_csv(index=False).encode('utf-8')
+                                mime = "text/csv"
+                                ext = "csv"
+                            elif export_format == "Excel":
+                                output = io.BytesIO()
+                                with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                                    combined_data.to_excel(writer, index=False, sheet_name='Data')
+                                data = output.getvalue()
+                                mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                                ext = "xlsx"
+                            else:
+                                data = combined_data.to_json(orient='records', date_format='iso').encode('utf-8')
+                                mime = "application/json"
+                                ext = "json"
+                            
+                            st.success(f"✅ Datos exportados como {export_format}.", icon="✅")
+                            st.download_button(
+                                label=f"📥 Descargar .{ext}",
+                                data=data,
+                                file_name=f"nom_lean_data_{datetime.now().strftime('%Y%m%d')}.{ext}",
+                                mime=mime,
+                                use_container_width=True
+                            )
+                        except Exception as e:
+                            logger.error(f"Error exporting data: {e}")
+                            st.error(f"Error al exportar datos: {e}", icon="🚨")
+
+# ========== MAIN FUNCTION ==========
 def main():
     logger.info("Starting main function")
-    
-    sidebar_result = render_sidebar()
-    if sidebar_result is None:
-        logger.warning("Sidebar returned None, stopping execution")
-        st.stop()
-    
-    start_date, end_date, departamentos_filtro, targets, nom_metrics, lean_metrics = sidebar_result
-    nom_target, lean_target, wellbeing_target, efficiency_target = targets
-    
-    render_header(start_date, end_date)
-    
-    st.markdown("#### 📈 Indicadores Clave")
-    col1, col2, col3, col4 = st.columns(4)
     try:
+        sidebar_data = render_sidebar()
+        if sidebar_data is None or sidebar_data[0] is None or sidebar_data[1] is None or not sidebar_data[2]:
+            logger.warning("Invalid sidebar data")
+            st.warning("⚠️ Configure los filtros en la barra lateral.", icon="⚠️")
+            return
+        
+        start_date, end_date, departamentos_filtro, targets, nom_metrics, lean_metrics = sidebar_data
+        nom_target, lean_target, wellbeing_target, efficiency_target = targets
+        
+        render_header(start_date, end_date)
+        
+        st.markdown("### Indicadores Clave")
+        cols = st.columns(4)
         filtered_nom = filter_dataframe(nom_df, departamentos_filtro, start_date, end_date)
         filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
         filtered_bienestar = filter_dataframe(bienestar_df, [], start_date, end_date)
+        kpis = [
+            (
+                filtered_nom['Evaluaciones'].mean() if not filtered_nom.empty and 'Evaluaciones' in filtered_nom.columns else 0,
+                "Cumplimiento NOM-035",
+                nom_target,
+                "📋",
+                filtered_nom['Evaluaciones'].mean() - filtered_nom.groupby('Departamento')['Evaluaciones'].mean().shift(1).mean() if not filtered_nom.empty and 'Evaluaciones' in filtered_nom.columns else 0
+            ),
+            (
+                filtered_lean['Eficiencia'].mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0,
+                "Adopción LEAN 2.0",
+                lean_target,
+                "🔄",
+                filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0
+            ),
+            (
+                filtered_bienestar['Índice Bienestar'].mean() if not filtered_bienestar.empty and 'Índice Bienestar' in filtered_bienestar.columns else 0,
+                "Índice Bienestar",
+                wellbeing_target,
+                "😊",
+                filtered_bienestar['Índice Bienestar'].mean() - filtered_bienestar['Índice Bienestar'].shift(1).mean() if not filtered_bienestar.empty and 'Índice Bienestar' in filtered_bienestar.columns else 0
+            ),
+            (
+                filtered_lean['Eficiencia'].mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0,
+                "Eficiencia Operativa",
+                efficiency_target,
+                "⚙️",
+                filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0
+            )
+        ]
+        for i, (value, title, target, icon, delta) in enumerate(kpis):
+            with cols[i]:
+                kpi_card(value, title, target, icon, delta)
         
-        with col1:
-            nom_value = filtered_nom['Evaluaciones'].mean() if not filtered_nom.empty else 0
-            kpi_card(nom_value, "NOM-035", nom_target, "📋")
-        with col2:
-            lean_value = filtered_lean['Eficiencia'].mean() if not filtered_lean.empty else 0
-            kpi_card(lean_value, "LEAN", lean_target, "🔄")
-        with col3:
-            wellbeing_value = filtered_bienestar['Índice Bienestar'].mean() if not filtered_bienestar.empty else 0
-            kpi_card(wellbeing_value, "Bienestar", wellbeing_target, "😊")
-        with col4:
-            efficiency_value = filtered_lean['Eficiencia'].mean() if not filtered_lean.empty else 0
-            kpi_card(efficiency_value, "Eficiencia", efficiency_target, "⚙️")
+        tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN 2.0", "😊 Bienestar", "📝 Planes de Acción"])
+        
+        with tab1:
+            render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics)
+        with tab2:
+            render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics)
+        with tab3:
+            render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target)
+        with tab4:
+            render_action_plans_tab(departamentos_filtro, start_date, end_date)
+        
+        render_export_section(nom_df, lean_df, bienestar_df)
+        
     except Exception as e:
-        logger.error(f"Error rendering KPI cards: {e}")
-        st.warning(f"Error al renderizar indicadores: {e}", icon="⚠️")
-    
-    st.markdown("---")
-    
-    tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN", "😊 Bienestar", "🛠 Planes de Acción"])
-    
-    with tab1:
-        render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics)
-    with tab2:
-        render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics)
-    with tab3:
-        render_wellbeing_tab(bienestar_df, wellbeing_target, start_date, end_date)
-    with tab4:
-        render_action_plans_tab(st.session_state.action_plans_df, departamentos_filtro, start_date, end_date)
+        logger.error(f"Error in main function: {e}")
+        st.error(f"Error en la aplicación: {e}", icon="🚨")
 
 if __name__ == "__main__":
     main()
