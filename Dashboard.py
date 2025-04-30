@@ -318,7 +318,7 @@ with cols[0]:
         "Cumplimiento NOM-035", 
         nom_target, 
         "📋",
-        "Porcentaje de cumplimiento con la norma NOM-035"
+        "Porcentaje de cumplimiento con la norma NOM-035-STPS-2018"
     )
 with cols[1]: 
     kpi_card(
@@ -326,7 +326,7 @@ with cols[1]:
         "Adopción LEAN", 
         lean_target, 
         "🔄",
-        "Nivel de implementación de metodologías LEAN"
+        "Nivel de implementación de metodologías LEAN 2.0"
     )
 with cols[2]: 
     kpi_card(
