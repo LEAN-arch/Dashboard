@@ -11,7 +11,7 @@ warnings.filterwarnings('ignore')
 
 # ========== PAGE CONFIGURATION - MUST BE FIRST STREAMLIT COMMAND ==========
 st.set_page_config(
-    page_title="Sistema Integral NOM-035 & LEAN 2.0",
+    page_title="NOM-035 & LEAN Dashboard",
     layout="wide",
     page_icon="📊",
     initial_sidebar_state="expanded"
