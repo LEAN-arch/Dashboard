@@ -22,16 +22,16 @@ DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Venta
 
 # Professional color scheme
 COLOR_PALETTE = {
-    'primary': '#2c3e50',       # Dark blue
-    'secondary': '#3498db',     # Bright blue
-    'accent': '#2980b9',        # Medium blue
-    'success': '#27ae60',       # Green
-    'warning': '#f39c12',       # Orange
-    'danger': '#e74c3c',        # Red
-    'light': '#ecf0f1',         # Light gray
-    'dark': '#2c3e50',          # Dark blue
-    'background': '#f9f9f9',    # Off-white
-    'text': '#333333'           # Dark gray
+    'primary': '#2c3e50',
+    'secondary': '#3498db',
+    'accent': '#2980b9',
+    'success': '#27ae60',
+    'warning': '#f39c12',
+    'danger': '#e74c3c',
+    'light': '#ecf0f1',
+    'dark': '#2c3e50',
+    'background': '#f9f9f9',
+    'text': '#333333'
 }
 
 # Font settings
@@ -45,27 +45,20 @@ html, body, [class*="css"] {
 """
 st.markdown(FONT_CSS, unsafe_allow_html=True)
 
-# Custom CSS for professional styling
+# Custom CSS
 st.markdown(f"""
 <style>
-    /* Main container */
     .main {{
         background-color: {COLOR_PALETTE['background']};
     }}
-    
-    /* Sidebar */
     [data-testid="stSidebar"] {{
         background-color: {COLOR_PALETTE['primary']} !important;
         color: white !important;
     }}
-    
-    /* Titles */
     h1, h2, h3, h4, h5, h6 {{
         color: {COLOR_PALETTE['primary']} !important;
         font-weight: 700 !important;
     }}
-    
-    /* Cards */
     .card {{
         background-color: white;
         border-radius: 10px;
@@ -73,25 +66,19 @@ st.markdown(f"""
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         margin-bottom: 20px;
     }}
-    
-    /* Tabs */
     [data-baseweb="tab-list"] {{
         gap: 10px;
     }}
-    
     [data-baseweb="tab"] {{
         background-color: {COLOR_PALETTE['light']} !important;
         border-radius: 8px !important;
         padding: 8px 16px !important;
         margin: 0 5px !important;
     }}
-    
     [aria-selected="true"] {{
         background-color: {COLOR_PALETTE['primary']} !important;
         color: white !important;
     }}
-    
-    /* Dataframes */
     .stDataFrame {{
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -99,15 +86,11 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# [Rest of your code remains exactly the same...]
-
-# ========== DATA LOADING AND PROCESSING ==========
+# ========== DATA LOADING ==========
 @st.cache_data(ttl=600)
 def load_data():
-    """Load and generate synthetic data for the dashboard"""
     np.random.seed(42)
     
-    # NOM-035 Data
     nom = pd.DataFrame({
         'Departamento': DEPARTMENTS,
         'Evaluaciones': np.random.randint(70, 100, len(DEPARTMENTS)),
@@ -116,7 +99,6 @@ def load_data():
         'Tendencia': np.round(np.random.normal(0.5, 1.5, len(DEPARTMENTS)), 2)
     })
     
-    # LEAN Data
     lean = pd.DataFrame({
         'Departamento': DEPARTMENTS,
         'Eficiencia': np.random.randint(60, 95, len(DEPARTMENTS)),
@@ -126,7 +108,6 @@ def load_data():
         'SMED': np.random.randint(50, 90, len(DEPARTMENTS))
     })
     
-    # Wellbeing Data
     dates = pd.date_range(start='2024-01-01', periods=12, freq='M')
     bienestar = pd.DataFrame({
         'Mes': dates,
@@ -136,7 +117,6 @@ def load_data():
         'Encuestas': np.random.randint(80, 100, 12)
     })
     
-    # Action Plans Data
     action_plans = pd.DataFrame({
         'ID': range(1, 6),
         'Departamento': np.random.choice(DEPARTMENTS, 5),
@@ -167,7 +147,6 @@ nom_df, lean_df, bienestar_df, action_plans_df = load_data()
 
 # ========== SIDEBAR ==========
 with st.sidebar:
-    # Logo and title
     st.markdown(f"""
     <div style="display: flex; align-items: center; margin-bottom: 20px;">
         <h1 style="color: white; margin-bottom: 0;">📊</h1>
@@ -177,7 +156,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Date range filter
     st.markdown("**🔍 Filtros de Periodo**")
     fecha_inicio, fecha_fin = st.columns(2)
     with fecha_inicio:
@@ -197,7 +175,6 @@ with st.sidebar:
             key="date_end"
         )
     
-    # Department filter
     st.markdown("**🏢 Departamentos**")
     departamentos_filtro = st.multiselect(
         "Seleccionar departamentos",
@@ -208,7 +185,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # KPI targets configuration
     with st.expander("⚙️ Configuración de Metas", expanded=False):
         nom_target = st.slider("Meta NOM-035 (%)", 50, 100, 90)
         lean_target = st.slider("Meta LEAN (%)", 50, 100, 80)
@@ -217,12 +193,9 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Refresh button
-    if st.button("🔄 Actualizar Datos", use_container_width=True, 
-                help="Actualiza todos los datos y visualizaciones"):
+    if st.button("🔄 Actualizar Datos", use_container_width=True):
         st.rerun()
     
-    # Version info
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #bdc3c7; font-size: 0.8rem;">
@@ -231,30 +204,8 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-# ========== HEADER ==========
-st.markdown(f"""
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-    <div>
-        <h1 style="margin-bottom: 5px; color: {COLOR_PALETTE['primary']};">Sistema Integral NOM-035 & LEAN 2.0</h1>
-        <p style="margin-top: 0; color: {COLOR_PALETTE['text']}; font-size: 1.1rem;">
-            Monitoreo Estratégico de Bienestar Psicosocial y Eficiencia Operacional
-        </p>
-    </div>
-    <div style="background-color: {COLOR_PALETTE['light']}; padding: 8px 15px; border-radius: 20px; 
-                text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <div style="font-size: 0.9rem; color: {COLOR_PALETTE['primary']}; font-weight: 600;">
-            {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}
-        </div>
-        <div style="font-size: 0.8rem; color: {COLOR_PALETTE['text']};">
-            Actualizado: {datetime.now().strftime('%d/%m/%Y %H:%M')}
-        </div>
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 # ========== KPI CARDS ==========
 def kpi_card(value, title, target, icon="📊", help_text=None):
-    """Create a professional KPI card with trend indicator"""
     delta = value - target
     percentage = min(100, (value / target * 100)) if target != 0 else 0
     
@@ -271,40 +222,52 @@ def kpi_card(value, title, target, icon="📊", help_text=None):
         color = COLOR_PALETTE['danger']
         delta_text = f"{delta}% bajo meta"
     
-    card_html = f"""
-    <div style='background-color: white; padding: 1rem; border-radius: 10px; 
-                box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%;'>
-        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;'>
-            <div style='font-size: 1rem; color: {COLOR_PALETTE['text']}; font-weight: 600;'>
-                {icon} {title}
+    card = st.container()
+    with card:
+        st.markdown(f"""
+        <div style='background-color: white; padding: 1rem; border-radius: 10px; 
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%;'>
+            <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;'>
+                <div style='font-size: 1rem; color: {COLOR_PALETTE['text']}; font-weight: 600;'>
+                    {icon} {title}
+                </div>
+                <div style='font-size: 0.9rem; color: {COLOR_PALETTE['text']};'>
+                    {status}
+                </div>
             </div>
-            <div style='font-size: 0.9rem; color: {COLOR_PALETTE['text']};'>
-                {status}
+            <div style='font-size: 1.8rem; font-weight: 700; color: {color}; margin-bottom: 5px;'>
+                {value}%
+            </div>
+            <div style='font-size: 0.85rem; color: {COLOR_PALETTE['text']}; margin-bottom: 8px;'>
+                Meta: {target}% • {delta_text}
+            </div>
+            <div style='height: 6px; background: #f0f0f0; border-radius: 3px;'>
+                <div style='width: {percentage}%; height: 6px; background: {color}; border-radius: 3px;'></div>
             </div>
         </div>
-        <div style='font-size: 1.8rem; font-weight: 700; color: {color}; margin-bottom: 5px;'>
-            {value}%
-        </div>
-        <div style='font-size: 0.85rem; color: {COLOR_PALETTE['text']}; margin-bottom: 8px;'>
-            Meta: {target}% • {delta_text}
-        </div>
-        <div style='height: 6px; background: #f0f0f0; border-radius: 3px;'>
-            <div style='width: {percentage}%; height: 6px; background: {color}; border-radius: 3px;'></div>
-        </div>
-    </div>
-    """
+        """, unsafe_allow_html=True)
     
     if help_text:
-        with st.tooltip(help_text):
-            st.markdown(card_html, unsafe_allow_html=True)
-    else:
-        st.markdown(card_html, unsafe_allow_html=True)
+        st.markdown(f"<span title='{help_text}'> </span>", unsafe_allow_html=True)
 
-# Calculate KPIs from data
+# Calculate KPIs
 nom_compliance = nom_df['Evaluaciones'].mean()
 lean_adoption = lean_df['Eficiencia'].mean()
 wellbeing_index = bienestar_df['Índice Bienestar'].mean()
 operational_efficiency = lean_df['Eficiencia'].mean()
+
+# Display KPIs
+cols = st.columns(4)
+with cols[0]: 
+    kpi_card(round(nom_compliance), "Cumplimiento NOM-035", nom_target, "📋", "Porcentaje de cumplimiento con la norma NOM-035")
+with cols[1]: 
+    kpi_card(round(lean_adoption), "Adopción LEAN", lean_target, "🔄", "Nivel de implementación de metodologías LEAN")
+with cols[2]: 
+    kpi_card(round(wellbeing_index), "Índice Bienestar", wellbeing_target, "😊", "Indicador general de bienestar organizacional")
+with cols[3]: 
+    kpi_card(round(operational_efficiency), "Eficiencia Operativa", efficiency_target, "⚙️", "Eficiencia general de los procesos operativos")
+
+# [Rest of your tabs and visualizations remain the same...]
 
 # Display KPIs in columns
 cols = st.columns(4)
