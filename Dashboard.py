@@ -709,958 +709,604 @@ def render_nom_tab(nom_df):
         
         with nom_view2:
                 st.markdown("**🔍 Mapa de Riesgo Psicosocial**")
-                heatmap_data = filtered_nom.set_index('Departamento')[['Evaluaciones', 'Capacitaciones', 'Incidentes']]
-                heatmap_data.columns = ['Evaluaciones (%)', 'Capacitaciones (%)', 'Incidentes (n)']
-                scaler = MinMaxScaler()
-                heatmap_values = scaler.fit_transform(heatmap_data)
-                
-                fig_heat = go.Figure(data=go.Heatmap(
-                    z=heatmap_values,
-                    x=heatmap_data.columns,
-                    y=heatmap_data.index,
-                    text=heatmap_data.values,
-                    texttemplate="%{text}",
-                    colorscale='RdYlGn',
-                    reversescale=True,
-                    hoverongaps=False,
-                    colorbar=dict(
-                        title="Riesgo",
-                        title_side="right",
-                        tickmode="array",
-                        tickvals=[0, 0.5, 1],
-                        ticktext=["Alto", "Medio", "Bajo"],
-                        len=0.8,
-                        thickness=15
-                    )
-                ))
-                fig_heat.update_layout(
-                    height=500,
+            heatmap_data = filtered_nom.set_index('Departamento')[['Evaluaciones', 'Capacitaciones', 'Incidentes']]
+            heatmap_data.columns = ['Evaluaciones (%)', 'Capacitaciones (%)', 'Incidentes (n)']
+            scaler = MinMaxScaler()
+            heatmap_values = scaler.fit_transform(heatmap_data)
+            
+            fig_heat = go.Figure(data=go.Heatmap(
+                z=heatmap_values,
+                x=heatmap_data.columns,
+                y=heatmap_data.index,
+                text=heatmap_data.values,
+                texttemplate="%{text}",
+                colorscale='RdYlGn',
+                reversescale=True,
+                hoverongaps=False,
+                colorbar=dict(
+                    title="Riesgo",
+                    title_side="right",
+                    tickmode="array",
+                    tickvals=[0, 0.5, 1],
+                    ticktext=["Alto", "Medio", "Bajo"],
+                    len=0.8,
+                    thickness=15
+                )
+            ))
+            fig_heat.update_layout(
+                height=500,
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=50, r=50, t=50, b=50),
+                xaxis_title="",
+                yaxis_title="Departamento",
+                hoverlabel=dict(
+                    bgcolor="white",
+                    font_size=12,
+                    font_family="Inter"
+                )
+            )
+            st.plotly_chart(fig_heat, use_container_width=True)
+            
+            st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                <h4 style="margin-top: 0; color: #2c3e50;">Guía de Interpretación</h4>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background-color: #e74c3c; margin-right: 0.5rem; border-radius: 4px;"></div>
+                            <span style="font-weight: 600;">Alto Riesgo</span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
+                            Evaluaciones < 70%, Capacitaciones < 60%, o Incidentes > 5
+                        </p>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background-color: #f39c12; margin-right: 0.5rem; border-radius: 4px;"></div>
+                            <span style="font-weight: 600;">Riesgo Medio</span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
+                            Evaluaciones 70-80%, Capacitaciones 60-75%, o Incidentes 2-5
+                        </p>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <div style="width: 20px; height: 20px; background-color: #27ae60; margin-right: 0.5rem; border-radius: 4px;"></div>
+                            <span style="font-weight: 600;">Bajo Riesgo</span>
+                        </div>
+                        <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
+                            Evaluaciones > 80%, Capacitaciones > 75%, y Incidentes < 2
+                        </p>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with nom_view3:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                fig_trend = px.bar(
+                    filtered_nom, 
+                    x='Departamento', 
+                    y='Tendencia',
+                    color='Tendencia',
+                    color_continuous_scale='RdYlGn',
+                    range_color=[-3, 3],
+                    labels={'Tendencia': 'Cambio mensual (%)'},
+                    height=450
+                )
+                fig_trend.add_hline(
+                    y=0, 
+                    line_dash="dot", 
+                    line_color=COLOR_PALETTE['text_light'],
+                    annotation_text="Línea Base", 
+                    annotation_position="bottom right"
+                )
+                fig_trend.update_layout(
+                    title="Tendencia de Cumplimiento (Último Mes)",
+                    yaxis_title="Cambio en puntos porcentuales",
                     plot_bgcolor='rgba(0,0,0,0)',
-                    margin=dict(l=50, r=50, t=50, b=50),
-                    xaxis_title="",
-                    yaxis_title="Departamento",
-                    hoverlabel=dict(
-                        bgcolor="white",
-                        font_size=12,
-                        font_family="Inter"
+                    margin=dict(l=20, r=20, t=40, b=20),
+                    coloraxis_colorbar=dict(
+                        title="Cambio",
+                        tickvals=[-3, 0, 3],
+                        ticktext=["↓ Baja", "Neutral", "↑ Alta"]
                     )
                 )
-                st.plotly_chart(fig_heat, use_container_width=True)
+                st.plotly_chart(fig_trend, use_container_width=True)
                 
+                st.markdown("**📈 Relación entre Puntuación y Tendencia**")
+                fig_scatter = px.scatter(
+                    filtered_nom,
+                    x='Evaluaciones',
+                    y='Tendencia',
+                    color='Riesgo_Psicosocial',
+                    size='Incidentes',
+                    hover_name='Departamento',
+                    color_discrete_map={
+                        'Bajo': COLOR_PALETTE['success'],
+                        'Medio': COLOR_PALETTE['warning'],
+                        'Alto': COLOR_PALETTE['danger']
+                    },
+                    labels={
+                        'Evaluaciones': 'Evaluaciones (%)',
+                        'Tendencia': 'Cambio Mensual (%)',
+                        'Incidentes': 'Número de Incidentes'
+                    },
+                    height=350
+                )
+                fig_scatter.add_vline(
+                    x=90,
+                    line_dash="dot",
+                    line_color=COLOR_PALETTE['primary'],
+                    annotation_text="Meta: 90%", 
+                    annotation_position="top right"
+                )
+                fig_scatter.add_hline(
+                    y=0,
+                    line_dash="dot",
+                    line_color=COLOR_PALETTE['text_light']
+                )
+                fig_scatter.update_layout(
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    legend_title_text='Nivel de Riesgo',
+                    xaxis_range=[50, 100],
+                    yaxis_range=[-3, 3]
+                )
+                st.plotly_chart(fig_scatter, use_container_width=True)
+            
+            with col2:
+                st.markdown("**📊 Interpretación de Tendencias**")
                 st.markdown("""
-                <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                    <h4 style="margin-top: 0; color: #2c3e50;">Guía de Interpretación</h4>
-                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                        <div style="flex: 1; min-width: 200px;">
-                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                <div style="width: 20px; height: 20px; background-color: #e74c3c; margin-right: 0.5rem; border-radius: 4px;"></div>
-                                <span style="font-weight: 600;">Alto Riesgo</span>
-                            </div>
-                            <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
-                                Evaluaciones < 70%, Capacitaciones < 60%, o Incidentes > 5
-                            </p>
-                        </div>
-                        <div style="flex: 1; min-width: 200px;">
-                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                <div style="width: 20px; height: 20px; background-color: #f39c12; margin-right: 0.5rem; border-radius: 4px;"></div>
-                                <span style="font-weight: 600;">Riesgo Medio</span>
-                            </div>
-                            <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
-                                Evaluaciones 70-80%, Capacitaciones 60-75%, o Incidentes 2-5
-                            </p>
-                        </div>
-                        <div style="flex: 1; min-width: 200px;">
-                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                <div style="width: 20px; height: 20px; background-color: #27ae60; margin-right: 0.5rem; border-radius: 4px;"></div>
-                                <span style="font-weight: 600;">Bajo Riesgo</span>
-                            </div>
-                            <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
-                                Evaluaciones > 80%, Capacitaciones > 75%, y Incidentes < 2
-                            </p>
-                        </div>
+                <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: #27ae60; font-weight: bold; margin-right: 0.5rem;">↑ Positivo</span>
+                        <span>Mejora continua en el indicador</span>
+                    </div>
+                    <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: #e74c3c; font-weight: bold; margin-right: 0.5rem;">↓ Negativo</span>
+                        <span>Requiere atención inmediata</span>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span style="color: #f39c12; font-weight: bold; margin-right: 0.5rem;">→ Neutral</span>
+                        <span>Mantener monitoreo</span>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-            
-            with nom_view3:
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    fig_trend = px.bar(
-                        filtered_nom, 
-                        x='Departamento', 
-                        y='Tendencia',
-                        color='Tendencia',
-                        color_continuous_scale='RdYlGn',
-                        range_color=[-3, 3],
-                        labels={'Tendencia': 'Cambio mensual (%)'},
-                        height=450
-                    )
-                    fig_trend.add_hline(
-                        y=0, 
-                        line_dash="dot", 
-                        line_color=COLOR_PALETTE['text_light'],
-                        annotation_text="Línea Base", 
-                        annotation_position="bottom right"
-                    )
-                    fig_trend.update_layout(
-                        title="Tendencia de Cumplimiento (Último Mes)",
-                        yaxis_title="Cambio en puntos porcentuales",
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        margin=dict(l=20, r=20, t=40, b=20),
-                        coloraxis_colorbar=dict(
-                            title="Cambio",
-                            tickvals=[-3, 0, 3],
-                            ticktext=["↓ Baja", "Neutral", "↑ Alta"]
-                        )
-                    )
-                    st.plotly_chart(fig_trend, use_container_width=True)
-                    
-                    st.markdown("**📈 Relación entre Puntuación y Tendencia**")
-                    fig_scatter = px.scatter(
-                        filtered_nom,
-                        x='Evaluaciones',
-                        y='Tendencia',
-                        color='Riesgo_Psicosocial',
-                        size='Incidentes',
-                        hover_name='Departamento',
-                        color_discrete_map={
-                            'Bajo': COLOR_PALETTE['success'],
-                            'Medio': COLOR_PALETTE['warning'],
-                            'Alto': COLOR_PALETTE['danger']
-                        },
-                        labels={
-                            'Evaluaciones': 'Evaluaciones (%)',
-                            'Tendencia': 'Cambio Mensual (%)',
-                            'Incidentes': 'Número de Incidentes'
-                        },
-                        height=350
-                    )
-                    fig_scatter.add_vline(
-                        x=90,
-                        line_dash="dot",
-                        line_color=COLOR_PALETTE['primary'],
-                        annotation_text="Meta: 90%", 
-                        annotation_position="top right"
-                    )
-                    fig_scatter.add_hline(
-                        y=0,
-                        line_dash="dot",
-                        line_color=COLOR_PALETTE['text_light']
-                    )
-                    fig_scatter.update_layout(
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        legend_title_text='Nivel de Riesgo',
-                        xaxis_range=[50, 100],
-                        yaxis_range=[-3, 3]
-                    )
-                    st.plotly_chart(fig_scatter, use_container_width=True)
                 
-                with col2:
-                    st.markdown("**📊 Interpretación de Tendencias**")
-                    st.markdown("""
-                    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
-                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="color: #27ae60; font-weight: bold; margin-right: 0.5rem;">↑ Positivo</span>
-                            <span>Mejora continua en el indicador</span>
-                        </div>
-                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                            <span style="color: #e74c3c; font-weight: bold; margin-right: 0.5rem;">↓ Negativo</span>
-                            <span>Requiere atención inmediata</span>
-                        </div>
-                        <div style="display: flex; align-items: center;">
-                            <span style="color: #f39c12; font-weight: bold; margin-right: 0.5rem;">→ Neutral</span>
-                            <span>Mantener monitoreo</span>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown("**📌 Recomendaciones**")
-                    st.markdown("""
-                    <div style="background-color: #eaf2f8; padding: 1rem; border-radius: 10px;">
-                        <p style="margin-top: 0; margin-bottom: 0.5rem; font-weight: 600;">Para tendencias negativas:</p>
-                        <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-                            <li>Revisar carga de trabajo</li>
-                            <li>Evaluar clima laboral</li>
-                            <li>Reforzar capacitaciones</li>
-                        </ul>
-                        <p style="margin-top: 0.75rem; margin-bottom: 0.5rem; font-weight: 600;">Para tendencias positivas:</p>
-                        <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-                            <li>Identificar mejores prácticas</li>
-                            <li>Replicar en otros áreas</li>
-                            <li>Reconocer logros</li>
-                        </ul>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown("**📊 Comparación Departamental**")
-                    dept_comparison = st.selectbox(
-                        "Seleccionar métrica para comparar",
-                        options=['Evaluaciones', 'Capacitaciones', 'Incidentes', 'Tendencia'],
-                        label_visibility="collapsed"
-                    )
-                    fig_comparison = px.bar(
-                        filtered_nom.sort_values(dept_comparison),
-                        y='Departamento',
-                        x=dept_comparison,
-                        orientation='h',
-                        color=dept_comparison,
-                        color_continuous_scale='Blues',
-                        height=300
-                    )
-                    fig_comparison.update_layout(
-                        showlegend=False,
-                        xaxis_title="",
-                        yaxis_title="",
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        margin=dict(l=20, r=20, t=20, b=20)
-                    )
-                    st.plotly_chart(fig_comparison, use_container_width=True)
-        
-        def render_lean_tab(lean_df):
-            """Render the LEAN 2.0 tab."""
-            st.markdown("#### Progreso LEAN 2.0")
-            filtered_lean = lean_df[lean_df['Departamento'].isin(st.session_state.filters['departments'])]
-            
-            if filtered_lean.empty:
-                st.warning("⚠️ No hay datos disponibles para los departamentos seleccionados")
-            else:
-                col1, col2 = st.columns([2, 1])
-                with col1:
-                    fig_lean = px.bar(
-                        filtered_lean, 
-                        x='Departamento', 
-                        y='Eficiencia', 
-                        color='Nivel_LEAN', 
-                        color_discrete_map={
-                            'Inicial': COLOR_PALETTE['warning'],
-                            'Intermedio': COLOR_PALETTE['secondary'],
-                            'Avanzado': COLOR_PALETTE['success']
-                        },
-                        labels={'Eficiencia': 'Eficiencia (%)'},
-                        height=400,
-                        text='auto'
-                    )
-                    fig_lean.add_hline(
-                        y=80,
-                        line_dash="dot",
-                        line_color=COLOR_PALETTE['danger'],
-                        annotation_text="Meta: 80%",
-                        annotation_position="top right"
-                    )
-                    fig_lean.update_layout(
-                        title="Eficiencia por Departamento",
-                        yaxis_range=[0, 100],
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        margin=dict(l=20, r=20, t=40, b=20),
-                        legend_title_text='Nivel LEAN',
-                        xaxis_title="",
-                        hovermode="x unified"
-                    )
-                    st.plotly_chart(fig_lean, use_container_width=True)
-                    
-                    fig_scatter = px.scatter(
-                        filtered_lean,
-                        x='Reducción_Desperdicio',
-                        y='Eficiencia',
-                        size='Proyectos_Activos',
-                        color='Departamento',
-                        hover_name='Departamento',
-                        trendline="lowess",
-                        labels={
-                            'Reducción_Desperdicio': 'Reducción de Desperdicio (%)',
-                            'Eficiencia': 'Eficiencia (%)',
-                            'Proyectos_Activos': 'Proyectos Activos'
-                        },
-                        height=400
-                    )
-                    fig_scatter.add_shape(
-                        type="rect",
-                        x0=15, y0=80, x1=30, y1=100,
-                        line=dict(color=COLOR_PALETTE['success'], width=1),
-                        fillcolor=COLOR_PALETTE['success'] + "20",
-                        opacity=0.2,
-                        label=dict(text="Zona Óptima")
-                    )
-                    fig_scatter.update_layout(
-                        title="Relación Eficiencia vs Reducción de Desperdicio",
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        margin=dict(l=20, r=20, t=40, b=20),
-                        legend_title_text='Departamento'
-                    )
-                    st.plotly_chart(fig_scatter, use_container_width=True)
-                
-                with col2:
-                    st.markdown("**📊 Comparación de Métricas**")
-                    metrics = ['Eficiencia', 'Reducción_Desperdicio', '5S_Score', 'SMED']
-                    scaler = MinMaxScaler()
-                    lean_radar = filtered_lean.copy()
-                    lean_radar[metrics] = scaler.fit_transform(lean_radar[metrics])
-                    
-                    fig_radar = go.Figure()
-                    for dept in filtered_lean['Departamento']:
-                        row = lean_radar[lean_radar['Departamento'] == dept].iloc[0]
-                        fig_radar.add_trace(go.Scatterpolar(
-                            r=row[metrics].values,
-                            theta=metrics,
-                            fill='toself',
-                            name=dept,
-                            line=dict(width=2),
-                            hoverinfo='name+r+theta'
-                        ))
-                    fig_radar.update_layout(
-                        polar=dict(
-                            radialaxis=dict(visible=True, range=[0, 1]),
-                            angularaxis=dict(
-                                tickfont=dict(size=10)
-                            )
-                        ),
-                        height=400,
-                        showlegend=True,
-                        margin=dict(l=50, r=50, t=30, b=50),
-                        legend=dict(
-                            orientation="h",
-                            yanchor="bottom",
-                            y=-0.2,
-                            xanchor="center",
-                            x=0.5
-                        )
-                    )
-                    st.plotly_chart(fig_radar, use_container_width=True)
-                    
-                    with st.expander("📌 Detalle de Proyectos", expanded=True):
-                        projects_df = filtered_lean[['Departamento', 'Proyectos_Activos', 'Nivel_LEAN']] \
-                            .sort_values('Proyectos_Activos', ascending=False)
-                        st.dataframe(
-                            projects_df.style \
-                                .background_gradient(subset=['Proyectos_Activos'], cmap='Greens') \
-                                .apply(lambda x: ['color: ' + COLOR_PALETTE['success'] if v == 'Avanzado' 
-                                               else 'color: ' + COLOR_PALETTE['warning'] if v == 'Inicial'
-                                               else 'color: ' + COLOR_PALETTE['secondary'] 
-                                               for v in x], subset=['Nivel_LEAN']),
-                            use_container_width=True,
-                            height=250,
-                            hide_index=True
-                        )
-                    
-                    st.markdown("**📈 Madurez LEAN**")
-                    maturity = filtered_lean['Nivel_LEAN'].value_counts().reset_index()
-                    fig_maturity = px.pie(
-                        maturity,
-                        values='count',
-                        names='Nivel_LEAN',
-                        color='Nivel_LEAN',
-                        color_discrete_map={
-                            'Inicial': COLOR_PALETTE['warning'],
-                            'Intermedio': COLOR_PALETTE['secondary'],
-                            'Avanzado': COLOR_PALETTE['success']
-                        },
-                        hole=0.4,
-                        height=250
-                    )
-                    fig_maturity.update_layout(
-                        showlegend=False,
-                        margin=dict(l=20, r=20, t=30, b=20)
-                    )
-                    fig_maturity.update_traces(
-                        textposition='inside',
-                        textinfo='percent+label',
-                        hovertemplate="<b>%{label}</b><br>%{value} departamentos"
-                    )
-                    st.plotly_chart(fig_maturity, use_container_width=True)
-        
-        def render_wellbeing_tab(bienestar_df):
-            """Render the Bienestar tab."""
-            st.markdown("#### Tendencias de Bienestar Organizacional")
-            filtered_bienestar = bienestar_df[
-                (bienestar_df['Mes'].dt.date >= st.session_state.filters['start_date']) & 
-                (bienestar_df['Mes'].dt.date <= st.session_state.filters['end_date'])
-            ]
-            
-            if filtered_bienestar.empty:
-                st.warning("⚠️ No hay datos disponibles para el período seleccionado")
-            else:
-                st.markdown("**📊 Indicadores Clave**")
-                cols = st.columns(4)
-                encuestas_change = filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0] if len(filtered_bienestar) > 1 else 0
-                ausentismo_change = filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0] if len(filtered_bienestar) > 1 else 0
-                rotacion_change = filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0] if len(filtered_bienestar) > 1 else 0
-                bienestar_change = filtered_bienestar['Índice_Bienestar'].iloc[-1] - filtered_bienestar['Índice_Bienestar'].iloc[0] if len(filtered_bienestar) > 1 else 0
-                
-                with cols[0]:
-                    st.metric(
-                        label="Encuestas Completadas", 
-                        value=f"{filtered_bienestar['Encuestas'].mean():.0f}%",
-                        delta=f"{encuestas_change:+.0f}%",
-                        delta_color="normal",
-                        help="Porcentaje de encuestas de bienestar completadas"
-                    )
-                with cols[1]:
-                    st.metric(
-                        label="Índice de Bienestar", 
-                        value=f"{filtered_bienestar['Índice_Bienestar'].iloc[-1]:.1f}",
-                        delta=f"{bienestar_change:+.1f} puntos",
-                        delta_color="inverse" if bienestar_change < 0 else "normal",
-                        help="Índice general de bienestar organizacional"
-                    )
-                with cols[2]:
-                    st.metric(
-                        label="Tasa de Ausentismo", 
-                        value=f"{filtered_bienestar['Ausentismo'].iloc[-1]:.1f}%",
-                        delta=f"{ausentismo_change:+.1f}%",
-                        delta_color="normal" if ausentismo_change < 0 else "inverse",
-                        help="Porcentaje de ausentismo laboral"
-                    )
-                with cols[3]:
-                    st.metric(
-                        label="Tasa de Rotación", 
-                        value=f"{filtered_bienestar['Rotación'].iloc[-1]:.1f}%",
-                        delta=f"{rotacion_change:+.1f}%",
-                        delta_color="normal" if rotacion_change < 0 else "inverse",
-                        help="Porcentaje de rotación de personal"
-                    )
-                
-                wellbeing_view1, wellbeing_view2, wellbeing_view3 = st.tabs(["📈 Tendencias Mensuales", "🔍 Análisis de Correlación", "📊 Desglose por Componente"])
-                
-                with wellbeing_view1:
-                    fig_bienestar = px.line(
-                        filtered_bienestar, 
-                        x='Mes', 
-                        y=['Índice_Bienestar', 'Ausentismo', 'Rotación'], 
-                        markers=True,
-                        color_discrete_sequence=[
-                            COLOR_PALETTE['success'], 
-                            COLOR_PALETTE['danger'], 
-                            COLOR_PALETTE['warning']
-                        ],
-                        labels={'value': 'Porcentaje', 'variable': 'Métrica'},
-                        height=450
-                    )
-                    fig_bienestar.add_hline(
-                        y=85,
-                        line_dash="dot",
-                        line_color=COLOR_PALETTE['success'],
-                        annotation_text="Meta Bienestar: 85%",
-                        annotation_position="bottom right"
-                    )
-                    fig_bienestar.add_hline(
-                        y=8,
-                        line_dash="dot",
-                        line_color=COLOR_PALETTE['danger'],
-                        annotation_text="Meta Ausentismo: 8%",
-                        annotation_position="top right"
-                    )
-                    fig_bienestar.update_layout(
-                        title="Evolución Mensual de Bienestar",
-                        yaxis_range=[0, 100],
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        legend_title="Métrica",
-                        margin=dict(l=20, r=20, t=40, b=20),
-                        hovermode="x unified",
-                        hoverlabel=dict(
-                            bgcolor="white",
-                            font_size=12,
-                            font_family="Inter"
-                        )
-                    )
-                    for i, name in enumerate(['Índice Bienestar', 'Ausentismo', 'Rotación']):
-                        fig_bienestar.data[i].name = name
-                    st.plotly_chart(fig_bienestar, use_container_width=True)
-                    
-                    st.markdown("**📝 Encuestas de Bienestar**")
-                    fig_surveys = px.bar(
-                        filtered_bienestar,
-                        x='Mes',
-                        y='Encuestas',
-                        color='Encuestas',
-                        color_continuous_scale='Blues',
-                        range_color=[80, 100],
-                        labels={'Encuestas': 'Encuestas Completadas (%)'},
-                        height=300
-                    )
-                    fig_surveys.update_layout(
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        xaxis_title="",
-                        showlegend=False,
-                        margin=dict(l=20, r=20, t=20, b=20)
-                    )
-                    st.plotly_chart(fig_surveys, use_container_width=True)
-                
-                with wellbeing_view2:
-                    st.markdown("**🔍 Relación entre Indicadores**")
-                    corr_matrix = filtered_bienestar[['Índice_Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Satisfacción', 'Compromiso']].corr()
-                    fig_corr = px.imshow(
-                        corr_matrix,
-                        text_auto=True,
-                        color_continuous_scale='RdYlGn',
-                        range_color=[-1, 1],
-                        labels=dict(x="Métrica", y="Métrica", color="Correlación"),
-                        height=500,
-                        aspect="auto"
-                    )
-                    fig_corr.update_layout(
-                        title="Matriz de Correlación",
-                        xaxis_title="",
-                        yaxis_title="",
-                        margin=dict(l=50, r=50, t=50, b=50)
-                    )
-                    st.plotly_chart(fig_corr, use_container_width=True)
-                    
-                    st.markdown("""
-                    <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
-                        <h4 style="margin-top: 0; color: #2c3e50;">Interpretación de Correlaciones</h4>
-                        <ul style="margin: 0; padding-left: 1.2rem;">
-                            <li><b>Correlación positiva fuerte (0.7-1.0):</b> Las métricas se mueven en la misma dirección</li>
-                            <li><b>Correlación negativa fuerte (-1.0 - -0.7):</b> Las métricas se mueven en direcciones opuestas</li>
-                            <li><b>Correlación débil (-0.3 - 0.3):</b> Poca o ninguna relación aparente</li>
-                        </ul>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with wellbeing_view3:
-                    st.markdown("**📊 Componentes del Bienestar**")
-                    fig_components = px.line(
-                        filtered_bienestar,
-                        x='Mes',
-                        y=['Índice_Bienestar', 'Satisfacción', 'Compromiso'],
-                        markers=True,
-                        color_discrete_sequence=[
-                            COLOR_PALETTE['primary'],
-                            COLOR_PALETTE['success'],
-                            COLOR_PALETTE['secondary']
-                        ],
-                        labels={'value': 'Puntuación', 'variable': 'Componente'},
-                        height=450
-                    )
-                    fig_components.update_layout(
-                        plot_bgcolor='rgba(0,0,0,0)',
-                        legend_title="Componente",
-                        margin=dict(l=20, r=20, t=40, b=20),
-                        hovermode="x unified"
-                    )
-                    for i, name in enumerate(['Índice General', 'Satisfacción', 'Compromiso']):
-                        fig_components.data[i].name = name
-                    st.plotly_chart(fig_components, use_container_width=True)
-                    
-                    st.markdown("**📌 Contribución al Índice**")
-                    cols = st.columns(3)
-                    with cols[0]:
-                        st.markdown("""
-                        <div style="background-color: #eaf2f8; padding: 1rem; border-radius: 10px; height: 100%;">
-                            <h4 style="margin-top: 0; color: #2c3e50;">Satisfacción</h4>
-                            <p style="margin-bottom: 0; font-size: 0.9rem;">
-                                Mide el nivel de satisfacción general de los empleados con su trabajo, condiciones laborales y ambiente de trabajo.
-                            </p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    with cols[1]:
-                        st.markdown("""
-                        <div style="background-color: #e8f8f5; padding: 1rem; border-radius: 10px; height: 100%;">
-                            <h4 style="margin-top: 0; color: #2c3e50;">Compromiso</h4>
-                            <p style="margin-bottom: 0; font-size: 0.9rem;">
-                                Evalúa el nivel de involucramiento y conexión emocional de los empleados con la organización.
-                            </p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    with cols[2]:
-                        st.markdown("""
-                        <div style="background-color: #fef9e7; padding: 1rem; border-radius: 10px; height: 100%;">
-                            <h4 style="margin-top: 0; color: #2c3e50;">Índice General</h4>
-                            <p style="margin-bottom: 0; font-size: 0.9rem;">
-                                Combinación ponderada de todos los componentes que miden el bienestar organizacional.
-                            </p>
-                        </div>
-                        """, unsafe_allow_html=True)
-        
-        def render_action_plans_tab():
-            """Render the Planes de Acción tab."""
-            st.markdown("#### Planes de Acción y Seguimiento")
-            filtered_plans = st.session_state.action_plans_df[
-                (st.session_state.action_plans_df['Departamento'].isin(st.session_state.filters['departments'] if st.session_state.filters['departments'] else DEPARTMENTS)) &
-                (st.session_state.action_plans_df['Plazo'] >= st.session_state.filters['start_date']) &
-                (st.session_state.action_plans_df['Plazo'] <= st.session_state.filters['end_date'])
-            ]
-            
-            if filtered_plans.empty:
-                st.warning("⚠️ No hay planes de acción para los departamentos o período seleccionados")
-            else:
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown("**📌 Planes Registrados**")
-                    def style_action_plans(df):
-                        styled = df.copy()
-                        styled['Plazo'] = styled['Plazo'].apply(lambda x: x.strftime('%d/%m/%Y') if pd.notnull(x) else '')
-                        status_colors = {
-                            'Completado': COLOR_PALETTE['success'],
-                            'En progreso': COLOR_PALETTE['warning'],
-                            'Pendiente': COLOR_PALETTE['danger']
-                        }
-                        priority_colors = {
-                            'Alta': COLOR_PALETTE['danger'],
-                            'Media': COLOR_PALETTE['warning'],
-                            'Baja': COLOR_PALETTE['success']
-                        }
-                        styled['Estado'] = styled['Estado'].apply(
-                            lambda x: f"<span style='color: {status_colors[x]}; font-weight: bold;'>{x}</span>"
-                        )
-                        styled['Prioridad'] = styled['Prioridad'].apply(
-                            lambda x: f"<span style='color: {priority_colors[x]}; font-weight: bold;'>{x}</span>"
-                        )
-                        styled['Avance'] = styled['%_Avance'].apply(
-                            lambda x: f"""
-                            <div style="position: relative; height: 20px; background: #f0f0f0; border-radius: 4px;">
-                                <div style="position: absolute; height: 20px; width: {x}%; background: {COLOR_PALETTE['secondary']}; border-radius: 4px; 
-                                            display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
-                                    {x}%
-                                </div>
-                            </div>
-                            """
-                        )
-                        return styled[['Departamento', 'Problema', 'Acción', 'Responsable', 'Plazo', 'Estado', 'Prioridad', 'Avance']]
-                    
-                    styled_plans = style_action_plans(filtered_plans)
-                    st.markdown(
-                        styled_plans.to_html(escape=False, index=False),
-                        unsafe_allow_html=True
-                    )
-                    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-                    
-                    st.markdown("**📊 Distribución de Estados**")
-                    status_cols = st.columns(3)
-                    with status_cols[0]:
-                        completed = filtered_plans[filtered_plans['Estado'] == 'Completado'].shape[0]
-                        st.metric("Completados", completed, delta=f"{completed/len(filtered_plans)*100:.1f}%")
-                    with status_cols[1]:
-                        in_progress = filtered_plans[filtered_plans['Estado'] == 'En progreso'].shape[0]
-                        st.metric("En Progreso", in_progress, delta=f"{in_progress/len(filtered_plans)*100:.1f}%")
-                    with status_cols[2]:
-                        pending = filtered_plans[filtered_plans['Estado'] == 'Pendiente'].shape[0]
-                        st.metric("Pendientes", pending, delta=f"{pending/len(filtered_plans)*100:.1f}%")
-                
-                with col2:
-                    st.markdown("**📅 Vencimientos Próximos**")
-                    today = date.today()
-                    upcoming = filtered_plans.copy()
-                    upcoming['Días Restantes'] = (upcoming['Plazo'] - today).apply(lambda x: x.days)
-                    upcoming = upcoming[upcoming['Días Restantes'] <= 30].sort_values('Días Restantes')
-                    
-                    if not upcoming.empty:
-                        for _, row in upcoming.iterrows():
-                            days_left = row['Días Restantes']
-                            if days_left < 0:
-                                status_color = COLOR_PALETTE['danger']
-                                status_text = f"Vencido hace {-days_left} días"
-                            elif days_left < 7:
-                                status_color = COLOR_PALETTE['danger']
-                                status_text = f"Vence en {days_left} días"
-                            elif days_left < 14:
-                                status_color = COLOR_PALETTE['warning']
-                                status_text = f"Vence en {days_left} días"
-                            else:
-                                status_color = COLOR_PALETTE['success']
-                                status_text = f"Vence en {days_left} días"
-                            st.markdown(f"""
-                            <div style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid {status_color};">
-                                <div style="font-weight: 600; margin-bottom: 0.25rem;">{sanitize_input(row['Departamento'])}</div>
-                                <div style="font-size: 0.8rem; margin-bottom: 0.25rem; color: {COLOR_PALETTE['text_light']};">
-                                    {sanitize_input(row['Problema'][:30])}...
-                                </div>
-                                <div style="font-size: 0.8rem; color: {status_color}; font-weight: 500;">
-                                    {status_text}
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                    else:
-                        st.info("🎉 No hay planes con vencimiento próximo", icon="ℹ️")
-                    
-                    st.markdown("**📌 Distribución por Prioridad**")
-                    priority_counts = filtered_plans['Prioridad'].value_counts().reset_index()
-                    fig_priority = px.pie(
-                        priority_counts,
-                        values='count',
-                        names='Prioridad',
-                        color='Prioridad',
-                        color_discrete_map={
-                            'Alta': COLOR_PALETTE['danger'],
-                            'Media': COLOR_PALETTE['warning'],
-                            'Baja': COLOR_PALETTE['success']
-                        },
-                        hole=0.5,
-                        height=250
-                    )
-                    fig_priority.update_layout(
-                        showlegend=False,
-                        margin=dict(l=20, r=20, t=20, b=20)
-                    )
-                    fig_priority.update_traces(
-                        textposition='inside',
-                        textinfo='percent+label',
-                        hovertemplate="<b>%{label}</b><br>%{value} planes"
-                    )
-                    st.plotly_chart(fig_priority, use_container_width=True)
-            
-            with st.expander("➕ Registrar Nuevo Plan de Acción", expanded=False):
-                with st.form("nuevo_plan_form", clear_on_submit=True):
-                    st.markdown("**📝 Detalles del Plan**")
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        dept = st.selectbox("Departamento", DEPARTMENTS, index=0)
-                        problema = st.text_area(
-                            "Problema identificado", 
-                            max_chars=200,
-                            placeholder="Describa el problema identificado...",
-                            help="Sea específico sobre el problema que necesita atención"
-                        )
-                        prioridad = st.selectbox(
-                            "Prioridad", 
-                            ["Alta", "Media", "Baja"],
-                            help="Seleccione la urgencia e importancia de este plan"
-                        )
-                    with col2:
-                        accion = st.text_area(
-                            "Acción propuesta", 
-                            max_chars=200,
-                            placeholder="Describa la acción a implementar...",
-                            help="Sea claro sobre los pasos a seguir para resolver el problema"
-                        )
-                        responsable = st.text_input(
-                            "Responsable",
-                            placeholder="Nombre del responsable",
-                            help="Persona encargada de implementar el plan"
-                        )
-                        plazo = st.date_input(
-                            "Plazo estimado",
-                            min_value=date.today(),
-                            value=date.today() + timedelta(days=30),
-                            format="DD/MM/YYYY",
-                            help="Fecha límite para completar el plan"
-                        )
-                        avance = st.slider(
-                            "% Avance", 
-                            0, 100, 0,
-                            help="Porcentaje de completitud actual del plan"
-                        )
-                    
-                    submitted = st.form_submit_button(
-                        "💾 Guardar Plan de Acción",
-                        use_container_width=True
-                    )
-                    
-                    if submitted:
-                        if not problema or not accion or not responsable:
-                            st.error("Por favor complete todos los campos requeridos")
-                        else:
-                            new_id = max(st.session_state.action_plans_df['ID']) + 1 if not st.session_state.action_plans_df.empty else 1
-                            new_plan = pd.DataFrame([{
-                                'ID': new_id,
-                                'Departamento': dept,
-                                'Problema': sanitize_input(problema),
-                                'Acción': sanitize_input(accion),
-                                'Responsable': sanitize_input(responsable),
-                                'Plazo': plazo,
-                                'Estado': 'Pendiente' if avance == 0 else 'En progreso' if avance < 100 else 'Completado',
-                                'Prioridad': prioridad,
-                                '%_Avance': avance,
-                                'Impacto_Esperado': 'Alto' if prioridad == 'Alta' else 'Medio' if prioridad == 'Media' else 'Bajo'
-                            }])
-                            st.session_state.action_plans_df = pd.concat([st.session_state.action_plans_df, new_plan], ignore_index=True)
-                            st.success("✅ Plan de acción registrado correctamente")
-                            st.balloons()
-        
-        def render_export_section(nom_df, lean_df, bienestar_df):
-            """Render the export and reporting section with PDF generation and email simulation."""
-            st.markdown("---")
-            st.markdown("#### Exportación de Datos y Reportes")
-            
-            export_col1, export_col2, export_col3 = st.columns(3)
-            
-            with export_col1:
-                st.markdown("**📄 Generar Reporte PDF**")
-                with st.form("pdf_report_form"):
-                    report_type = st.selectbox(
-                        "Tipo de Reporte",
-                        ["Completo", "Resumen Ejecutivo", "Detallado por Departamento"],
-                        help="Seleccione el nivel de detalle del reporte"
-                    )
-                    report_options = st.multiselect(
-                        "Incluir en el Reporte",
-                        ["KPIs", "Gráficos", "Planes de Acción", "Recomendaciones"],
-                        default=["KPIs", "Planes de Acción"],
-                        help="Seleccione las secciones a incluir en el PDF"
-                    )
-                    generate_button = st.form_submit_button("📄 Generar Reporte", use_container_width=True)
-                    
-                    if generate_button:
-                        if not report_options:
-                            st.error("Por favor seleccione al menos una sección para incluir en el reporte")
-                        else:
-                            with st.spinner("Generando reporte PDF..."):
-                                try:
-                                    pdf_buffer = generate_pdf_report(
-                                        nom_df, lean_df, bienestar_df, 
-                                        st.session_state.action_plans_df, 
-                                        report_type, report_options
-                                    )
-                                    st.download_button(
-                                        label="📥 Descargar Reporte PDF",
-                                        data=pdf_buffer,
-                                        file_name=f"Reporte_{report_type.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf",
-                                        mime="application/pdf",
-                                        use_container_width=True
-                                    )
-                                    st.success("✅ Reporte generado correctamente")
-                                except Exception as e:
-                                    st.error(f"Error al generar el reporte: {e}")
-            
-            with export_col2:
-                st.markdown("**📧 Enviar Reporte por Correo**")
-                with st.form("email_report_form"):
-                    email_recipient = st.text_input(
-                        "Destinatario",
-                        placeholder="correo@ejemplo.com",
-                        help="Ingrese el correo electrónico del destinatario"
-                    )
-                    email_subject = st.text_input(
-                        "Asunto",
-                        value=f"Reporte NOM-035 & LEAN - {datetime.now().strftime('%d/%m/%Y')}",
-                        help="Asunto del correo electrónico"
-                    )
-                    email_body = st.text_area(
-                        "Mensaje",
-                        value="Adjunto el reporte generado con los últimos datos de NOM-035 y LEAN.",
-                        help="Contenido del correo electrónico",
-                        max_chars=500
-                    )
-                    send_button = st.form_submit_button("📩 Enviar Reporte", use_container_width=True)
-                    
-                    if send_button:
-                        if not email_recipient or not email_subject or not email_body:
-                            st.error("Por favor complete todos los campos requeridos")
-                        elif not "@" in email_recipient or not "." in email_recipient:
-                            st.error("Por favor ingrese un correo electrónico válido")
-                        else:
-                            with st.spinner("Preparando correo..."):
-                                try:
-                                    email_content = f"To: {sanitize_input(email_recipient)}\n" \
-                                                  f"Subject: {sanitize_input(email_subject)}\n\n" \
-                                                  f"{sanitize_input(email_body)}\n\n" \
-                                                  f"Nota: Este es un archivo simulado. En una implementación real, el reporte se enviaría por correo."
-                                    email_buffer = io.StringIO(email_content)
-                                    st.download_button(
-                                        label="📥 Descargar Contenido del Correo",
-                                        data=email_buffer.getvalue().encode('utf-8'),
-                                        file_name=f"Correo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                                        mime="text/plain",
-                                        use_container_width=True
-                                    )
-                                    st.success("✅ Correo simulado preparado correctamente")
-                                    st.info("Nota: Esta es una simulación. En un entorno real, el reporte se enviaría por correo electrónico.")
-                                except Exception as e:
-                                    st.error(f"Error al preparar el correo: {e}")
-            
-            with export_col3:
-                st.markdown("**📊 Exportar Datos**")
-                export_format = st.radio(
-                    "Formato", 
-                    ["CSV", "Excel", "JSON"],
-                    horizontal=True
-                )
-                data_options = st.multiselect(
-                    "Seleccionar datos a exportar",
-                    ["NOM-035", "LEAN", "Bienestar", "Planes de Acción"],
-                    default=["NOM-035", "LEAN", "Bienestar", "Planes de Acción"]
-                )
-                
-                if data_options:
-                    export_data = []
-                    if "NOM-035" in data_options:
-                        export_data.append(nom_df.assign(Tipo="NOM-035"))
-                    if "LEAN" in data_options:
-                        export_data.append(lean_df.assign(Tipo="LEAN"))
-                    if "Bienestar" in data_options:
-                        export_data.append(bienestar_df.assign(Tipo="Bienestar"))
-                    if "Planes de Acción" in data_options:
-                        export_data.append(st.session_state.action_plans_df.assign(Tipo="Planes_Accion"))
-                    
-                    combined_data = pd.concat(export_data, ignore_index=True)
-                    
-                    try:
-                        if export_format == "CSV":
-                            data = combined_data.to_csv(index=False).encode('utf-8')
-                            mime = "text/csv"
-                            ext = "csv"
-                        elif export_format == "Excel":
-                            output = io.BytesIO()
-                            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                                combined_data.to_excel(writer, index=False, sheet_name='NOM_LEAN_Data')
-                            data = output.getvalue()
-                            mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                            ext = "xlsx"
-                        else:  # JSON
-                            data = combined_data.to_json(orient='records', date_format='iso').encode('utf-8')
-                            mime = "application/json"
-                            ext = "json"
-                        
-                        st.download_button(
-                            label=f"💾 Descargar (.{ext})",
-                            data=data,
-                            file_name=f"nom_lean_data.{ext}",
-                            mime=mime,
-                            use_container_width=True
-                        )
-                    except Exception as e:
-                        st.error(f"Error al generar el archivo de exportación: {e}")
-                else:
-                    st.warning("⚠️ Seleccione al menos un tipo de datos para exportar")
-        
-        def main():
-            """Main function to orchestrate the dashboard rendering."""
-            global nom_df, lean_df, bienestar_df
-            
-            if not st.session_state.data_loaded:
-                nom_df, lean_df, bienestar_df = load_sample_data()
-            
-            if not st.session_state.authenticated:
-                st.markdown("### Por favor inicie sesión para acceder al dashboard")
-                return
-            
-            try:
-                nom_target, lean_target, wellbeing_target, efficiency_target = render_sidebar(nom_df, lean_df, bienestar_df)
-                if None in (nom_target, lean_target, wellbeing_target, efficiency_target):
-                    return
-                
-                render_header()
-                render_kpi_cards(nom_df, lean_df, bienestar_df, nom_target, lean_target, wellbeing_target, efficiency_target)
-                
-                tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN 2.0", "😊 Bienestar", "📌 Planes de Acción"])
-                
-                with tab1:
-                    render_nom_tab(nom_df)
-                
-                with tab2:
-                    render_lean_tab(lean_df)
-                
-                with tab3:
-                    render_wellbeing_tab(bienestar_df)
-                
-                with tab4:
-                    render_action_plans_tab()
-                
-                render_export_section(nom_df, lean_df, bienestar_df)
-                
+                st.markdown("**📌 Recomendaciones**")
                 st.markdown("""
-                <hr>
-                <div style="text-align: center; color: #7f8c8d; font-size: 0.8rem; padding: 1rem 0;">
-                    <p style="margin: 0.25rem 0;">Sistema Integral NOM-035 & LEAN 2.0 • Versión 2.3.0</p>
-                    <p style="margin: 0.25rem 0;">© 2024 Departamento de RH • Todos los derechos reservados</p>
-                    <p style="margin: 0.25rem 0; font-size: 0.7rem;">
-                        Para soporte técnico contacte a: <a href="mailto:soporte@empresa.com" style="color: #3498db;">soporte@empresa.com</a>
+                <div style="background-color: #eaf2f8; padding: 1rem; border-radius: 10px;">
+                    <p style="margin-top: 0; margin-bottom: 0.5rem; font-weight: 600;">Para tendencias negativas:</p>
+                    <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
+                        <li>Revisar carga de trabajo</li>
+                        <li>Evaluar clima laboral</li>
+                        <li>Reforzar capacitaciones</li>
+                    </ul>
+                    <p style="margin-top: 0.75rem; margin-bottom: 0.5rem; font-weight: 600;">Para tendencias positivas:</p>
+                    <ul style="margin: 0; padding-left: 1.2rem; font-size: 0.9rem;">
+                        <li>Identificar mejores prácticas</li>
+                        <li>Replicar en otros áreas</li>
+                        <li>Reconocer logros</li>
+                    </ul>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("**📊 Comparación Departamental**")
+                dept_comparison = st.selectbox(
+                    "Seleccionar métrica para comparar",
+                    options=['Evaluaciones', 'Capacitaciones', 'Incidentes', 'Tendencia'],
+                    label_visibility="collapsed"
+                )
+                fig_comparison = px.bar(
+                    filtered_nom.sort_values(dept_comparison),
+                    y='Departamento',
+                    x=dept_comparison,
+                    orientation='h',
+                    color=dept_comparison,
+                    color_continuous_scale='Blues',
+                    height=300
+                )
+                fig_comparison.update_layout(
+                    showlegend=False,
+                    xaxis_title="",
+                    yaxis_title="",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=20, r=20, t=20, b=20)
+                )
+                st.plotly_chart(fig_comparison, use_container_width=True)
+
+def render_lean_tab(lean_df):
+    """Render the LEAN 2.0 tab."""
+    st.markdown("#### Progreso LEAN 2.0")
+    filtered_lean = lean_df[lean_df['Departamento'].isin(st.session_state.filters['departments'])]
+    
+    if filtered_lean.empty:
+        st.warning("⚠️ No hay datos disponibles para los departamentos seleccionados")
+    else:
+        col1, col2 = st.columns([2, 1])
+        with col1:
+            fig_lean = px.bar(
+                filtered_lean, 
+                x='Departamento', 
+                y='Eficiencia', 
+                color='Nivel_LEAN', 
+                color_discrete_map={
+                    'Inicial': COLOR_PALETTE['warning'],
+                    'Intermedio': COLOR_PALETTE['secondary'],
+                    'Avanzado': COLOR_PALETTE['success']
+                },
+                labels={'Eficiencia': 'Eficiencia (%)'},
+                height=400,
+                text='Eficiencia'
+            )
+            fig_lean.add_hline(
+                y=80,
+                line_dash="dot",
+                line_color=COLOR_PALETTE['danger'],
+                annotation_text="Meta: 80%",
+                annotation_position="top right"
+            )
+            fig_lean.update_layout(
+                title="Eficiencia por Departamento",
+                yaxis_range=[0, 100],
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=20, r=20, t=40, b=20),
+                legend_title_text='Nivel LEAN',
+                xaxis_title="",
+                hovermode="x unified"
+            )
+            st.plotly_chart(fig_lean, use_container_width=True)
+            
+            fig_scatter = px.scatter(
+                filtered_lean,
+                x='Reducción_Desperdicio',
+                y='Eficiencia',
+                size='Proyectos_Activos',
+                color='Departamento',
+                hover_name='Departamento',
+                trendline="lowess",
+                labels={
+                    'Reducción_Desperdicio': 'Reducción de Desperdicio (%)',
+                    'Eficiencia': 'Eficiencia (%)',
+                    'Proyectos_Activos': 'Proyectos Activos'
+                },
+                height=400
+            )
+            fig_scatter.add_shape(
+                type="rect",
+                x0=15, y0=80, x1=30, y1=100,
+                line=dict(color=COLOR_PALETTE['success'], width=1),
+                fillcolor=COLOR_PALETTE['success'] + "20",
+                opacity=0.2,
+                label=dict(text="Zona Óptima")
+            )
+            fig_scatter.update_layout(
+                title="Relación Eficiencia vs Reducción de Desperdicio",
+                plot_bgcolor='rgba(0,0,0,0)',
+                margin=dict(l=20, r=20, t=40, b=20),
+                legend_title_text='Departamento'
+            )
+            st.plotly_chart(fig_scatter, use_container_width=True)
+        
+        with col2:
+            st.markdown("**📊 Comparación de Métricas**")
+            metrics = ['Eficiencia', 'Reducción_Desperdicio', '5S_Score', 'SMED']
+            scaler = MinMaxScaler()
+            lean_radar = filtered_lean.copy()
+            lean_radar[metrics] = scaler.fit_transform(lean_radar[metrics])
+            
+            fig_radar = go.Figure()
+            for dept in filtered_lean['Departamento']:
+                row = lean_radar[lean_radar['Departamento'] == dept].iloc[0]
+                fig_radar.add_trace(go.Scatterpolar(
+                    r=row[metrics].values,
+                    theta=metrics,
+                    fill='toself',
+                    name=dept,
+                    line=dict(width=2),
+                    hoverinfo='name+r+theta'
+                ))
+            fig_radar.update_layout(
+                polar=dict(
+                    radialaxis=dict(visible=True, range=[0, 1]),
+                    angularaxis=dict(
+                        tickfont=dict(size=10)
+                    )
+                ),
+                height=400,
+                showlegend=True,
+                margin=dict(l=50, r=50, t=30, b=50),
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.2,
+                    xanchor="center",
+                    x=0.5
+                )
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
+            
+            with st.expander("📌 Detalle de Proyectos", expanded=True):
+                projects_df = filtered_lean[['Departamento', 'Proyectos_Activos', 'Nivel_LEAN']] \
+                    .sort_values('Proyectos_Activos', ascending=False)
+                st.dataframe(
+                    projects_df.style \
+                        .background_gradient(subset=['Proyectos_Activos'], cmap='Greens') \
+                        .applymap(lambda x: f"color: {COLOR_PALETTE['success']}" if x == 'Avanzado' 
+                                 else f"color: {COLOR_PALETTE['warning']}" if x == 'Inicial'
+                                 else f"color: {COLOR_PALETTE['secondary']}",
+                                 subset=['Nivel_LEAN']),
+                    use_container_width=True,
+                    height=250,
+                    hide_index=True
+                )
+            
+            st.markdown("**📈 Madurez LEAN**")
+            maturity = filtered_lean['Nivel_LEAN'].value_counts().reset_index()
+            fig_maturity = px.pie(
+                maturity,
+                values='count',
+                names='Nivel_LEAN',
+                color='Nivel_LEAN',
+                color_discrete_map={
+                    'Inicial': COLOR_PALETTE['warning'],
+                    'Intermedio': COLOR_PALETTE['secondary'],
+                    'Avanzado': COLOR_PALETTE['success']
+                },
+                hole=0.4,
+                height=250
+            )
+            fig_maturity.update_layout(
+                showlegend=False,
+                margin=dict(l=20, r=20, t=30, b=20)
+            )
+            fig_maturity.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                hovertemplate="<b>%{label}</b><br>%{value} departamentos"
+            )
+            st.plotly_chart(fig_maturity, use_container_width=True)
+
+def render_wellbeing_tab(bienestar_df):
+    """Render the Bienestar tab."""
+    st.markdown("#### Tendencias de Bienestar Organizacional")
+    filtered_bienestar = bienestar_df[
+        (bienestar_df['Mes'].dt.date >= st.session_state.filters['start_date']) & 
+        (bienestar_df['Mes'].dt.date <= st.session_state.filters['end_date'])
+    ]
+    
+    if filtered_bienestar.empty:
+        st.warning("⚠️ No hay datos disponibles para el período seleccionado")
+    else:
+        st.markdown("**📊 Indicadores Clave**")
+        cols = st.columns(4)
+        encuestas_change = filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        ausentismo_change = filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        rotacion_change = filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        bienestar_change = filtered_bienestar['Índice_Bienestar'].iloc[-1] - filtered_bienestar['Índice_Bienestar'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        
+        with cols[0]:
+            st.metric(
+                label="Encuestas Completadas", 
+                value=f"{filtered_bienestar['Encuestas'].mean():.0f}%",
+                delta=f"{encuestas_change:+.0f}%",
+                delta_color="normal",
+                help="Porcentaje de encuestas de bienestar completadas"
+            )
+        with cols[1]:
+            st.metric(
+                label="Índice de Bienestar", 
+                value=f"{filtered_bienestar['Índice_Bienestar'].iloc[-1]:.1f}",
+                delta=f"{bienestar_change:+.1f} puntos",
+                delta_color="inverse" if bienestar_change < 0 else "normal",
+                help="Índice general de bienestar organizacional"
+            )
+        with cols[2]:
+            st.metric(
+                label="Tasa de Ausentismo", 
+                value=f"{filtered_bienestar['Ausentismo'].iloc[-1]:.1f}%",
+                delta=f"{ausentismo_change:+.1f}%",
+                delta_color="normal" if ausentismo_change < 0 else "inverse",
+                help="Porcentaje de ausentismo laboral"
+            )
+        with cols[3]:
+            st.metric(
+                label="Tasa de Rotación", 
+                value=f"{filtered_bienestar['Rotación'].iloc[-1]:.1f}%",
+                delta=f"{rotacion_change:+.1f}%",
+                delta_color="normal" if rotacion_change < 0 else "inverse",
+                help="Porcentaje de rotación de personal"
+            )
+        
+        wellbeing_view1, wellbeing_view2, wellbeing_view3 = st.tabs(["📈 Tendencias Mensuales", "🔍 Análisis de Correlación", "📊 Desglose por Componente"])
+        
+        with wellbeing_view1:
+            fig_bienestar = px.line(
+                filtered_bienestar, 
+                x='Mes', 
+                y=['Índice_Bienestar', 'Ausentismo', 'Rotación'], 
+                markers=True,
+                color_discrete_sequence=[
+                    COLOR_PALETTE['success'], 
+                    COLOR_PALETTE['danger'], 
+                    COLOR_PALETTE['warning']
+                ],
+                labels={'value': 'Porcentaje', 'variable': 'Métrica'},
+                height=450
+            )
+            fig_bienestar.add_hline(
+                y=85,
+                line_dash="dot",
+                line_color=COLOR_PALETTE['success'],
+                annotation_text="Meta Bienestar: 85%",
+                annotation_position="bottom right"
+            )
+            fig_bienestar.add_hline(
+                y=8,
+                line_dash="dot",
+                line_color=COLOR_PALETTE['danger'],
+                annotation_text="Meta Ausentismo: 8%",
+                annotation_position="top right"
+            )
+            fig_bienestar.update_layout(
+                title="Evolución Mensual de Bienestar",
+                yaxis_range=[0, 100],
+                plot_bgcolor='rgba(0,0,0,0)',
+                legend_title="Métrica",
+                margin=dict(l=20, r=20, t=40, b=20),
+                hovermode="x unified",
+                hoverlabel=dict(
+                    bgcolor="white",
+                    font_size=12,
+                    font_family="Inter"
+                )
+            )
+            for i, name in enumerate(['Índice Bienestar', 'Ausentismo', 'Rotación']):
+                fig_bienestar.data[i].name = name
+            st.plotly_chart(fig_bienestar, use_container_width=True)
+            
+            st.markdown("**📝 Encuestas de Bienestar**")
+            fig_surveys = px.bar(
+                filtered_bienestar,
+                x='Mes',
+                y='Encuestas',
+                color='Encuestas',
+                color_continuous_scale='Blues',
+                range_color=[80, 100],
+                labels={'Encuestas': 'Encuestas Completadas (%)'},
+                height=300
+            )
+            fig_surveys.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                xaxis_title="",
+                showlegend=False,
+                margin=dict(l=20, r=20, t=20, b=20)
+            )
+            st.plotly_chart(fig_surveys, use_container_width=True)
+        
+        with wellbeing_view2:
+            st.markdown("**🔍 Relación entre Indicadores**")
+            corr_matrix = filtered_bienestar[['Índice_Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Satisfacción', 'Compromiso']].corr()
+            fig_corr = px.imshow(
+                corr_matrix,
+                text_auto=True,
+                color_continuous_scale='RdYlGn',
+                range_color=[-1, 1],
+                labels=dict(x="Métrica", y="Métrica", color="Correlación"),
+                height=500,
+                aspect="auto"
+            )
+            fig_corr.update_layout(
+                title="Matriz de Correlación",
+                xaxis_title="",
+                yaxis_title="",
+                margin=dict(l=50, r=50, t=50, b=50)
+            )
+            st.plotly_chart(fig_corr, use_container_width=True)
+            
+            st.markdown("""
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                <h4 style="margin-top: 0; color: #2c3e50;">Interpretación de Correlaciones</h4>
+                <ul style="margin: 0; padding-left: 1.2rem;">
+                    <li><b>Correlación positiva fuerte (0.7-1.0):</b> Las métricas se mueven en la misma dirección</li>
+                    <li><b>Correlación negativa fuerte (-1.0 - -0.7):</b> Las métricas se mueven en direcciones opuestas</li>
+                    <li><b>Correlación débil (-0.3 - 0.3):</b> Poca o ninguna relación aparente</li>
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with wellbeing_view3:
+            st.markdown("**📊 Componentes del Bienestar**")
+            fig_components = px.line(
+                filtered_bienestar,
+                x='Mes',
+                y=['Índice_Bienestar', 'Satisfacción', 'Compromiso'],
+                markers=True,
+                color_discrete_sequence=[
+                    COLOR_PALETTE['primary'],
+                    COLOR_PALETTE['success'],
+                    COLOR_PALETTE['secondary']
+                ],
+                labels={'value': 'Puntuación', 'variable': 'Componente'},
+                height=450
+            )
+            fig_components.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                legend_title="Componente",
+                margin=dict(l=20, r=20, t=40, b=20),
+                hovermode="x unified"
+            )
+            for i, name in enumerate(['Índice General', 'Satisfacción', 'Compromiso']):
+                fig_components.data[i].name = name
+            st.plotly_chart(fig_components, use_container_width=True)
+            
+            st.markdown("**📌 Contribución al Índice**")
+            cols = st.columns(3)
+            with cols[0]:
+                st.markdown("""
+                <div style="background-color: #eaf2f8; padding: 1rem; border-radius: 10px; height: 100%;">
+                    <h4 style="margin-top: 0; color: #2c3e50;">Satisfacción</h4>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">
+                        Mide el nivel de satisfacción general de los empleados con su trabajo, condiciones laborales y ambiente de trabajo.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
-                
-            except Exception as e:
-                st.error(f"Error al renderizar el dashboard: {e}")
-                st.stop()
-        
-        if __name__ == "__main__":
-            main()  
+            with cols[1]:
+                st.markdown("""
+                <div style="background-color: #e8f8f5; padding: 1rem; border-radius: 10px; height: 100%;">
+                    <h4 style="margin-top: 0; color: #2c3e50;">Compromiso</h4>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">
+                        Evalúa el nivel de involucramiento y conexión emocional de los empleados con la organización.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            with cols[2]:
+                st.markdown("""
+                <div style="background-color: #fef9e7; padding: 1rem; border-radius: 10px; height: 100%;">
+                    <h4 style="margin-top: 0; color: #2c3e50;">Índice General</h4>
+                    <p style="margin-bottom: 0; font-size: 0.9rem;">
+                        Combinación ponderada de todos los componentes que miden el bienestar organizacional.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+
+def render_action_plans_tab():
+    """Render the Planes de Acción tab."""
+    st.markdown("#### Planes de Acción y Seguimiento")
+    filtered_plans = st.session_state.action_plans_df[
+        (st.session_state.action_plans_df['Departamento'].isin(st.session_state.filters['departments'] if st.session_state.filters['departments'] else DEPARTMENTS)) &
+        (st.session_state.action_plans_df['Plazo'] >= st.session_state.filters['start_date']) &
+        (st.session_state.action_plans_df['Plazo'] <= st.session_state.filters['end_date'])
+    ]
+    
+    if filtered_plans.empty:
+        st.warning("⚠️ No hay planes de acción para los departamentos o período seleccionados")
+    else:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("**📌 Planes Registrados**")
+            def style_action_plans(df):
+                styled = df.copy()
+                styled['Plazo'] = styled['Plazo'].apply(lambda x: x.strftime('%d/%m/%Y'))
+                status_colors = {
+                    'Completado': COLOR_PALETTE['success'],
+                    'En progreso': COLOR_PALETTE['warning'],
+                    'Pendiente': COLOR_PALETTE['danger']
+                }
+                priority_colors = {
+                    'Alta': COLOR_PALETTE['danger'],
+                    'Media': COLOR_PALETTE['warning'],
+                    'Baja': COLOR_PALETTE['success']
+                }
+                styled['Estado'] = styled['Estado'].apply(
+                    lambda x: f"<span style='color: {status_colors[x]}; font-weight: bold;'>{x}</span>"
+                )
+                styled['Prioridad'] = styled['Prioridad'].apply(
+                    lambda x: f"<span style='color: {priority_colors[x]}; font-weight: bold;'>{x}</span>"
+                )
+                styled['Avance'] = styled['%_Avance'].apply(
+                    lambda x: f"""
+                    <div style="position: relative; height: 20px; background: #f0f0f0; border-radius: 4px;">
+                        <div style="position: absolute; height: 20px; width: {x}%; background: {COLOR_PALETTE['secondary']}; border-radius: 4px; 
+                                    display: flex; align-items: center; justify-content: center; color: white; font-size:
