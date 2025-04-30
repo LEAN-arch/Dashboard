@@ -554,14 +554,25 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                 except Exception as e:
                     st.warning(f"Error al renderizar gráfico: {e}", icon="⚠️")
         
-        with col2:
-            st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
-            summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
-            st.dataframe(
-                summary.style.format('{:.1f}').background_gradient(cmap='RdYlGn', subset=nom_metrics),
-                use_container_width=True,
-                height=450
-            )
+                with col2:
+                    st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
+                    summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
+                    
+                    # Reset index to ensure unique column names
+                    summary = summary.reset_index()
+                    
+                    # Ensure unique column names by renaming duplicates
+                    summary.columns = [f"{col}_{i}" if col in summary.columns[:i] else col 
+                                      for i, col in enumerate(summary.columns)]
+                    
+                    st.dataframe(
+                        summary.style.format('{:.1f}').background_gradient(
+                            cmap='RdYlGn', 
+                            subset=[col for col in summary.columns if col in nom_metrics]
+                        ),
+                        use_container_width=True,
+                        height=450
+                    )
     
     with nom_view2:
         with st.spinner("Cargando mapa de riesgo..."):
