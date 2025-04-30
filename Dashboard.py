@@ -368,7 +368,7 @@ def render_sidebar():
         st.markdown("""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
             <span style="font-size: 1.5rem;">📊</span>
-            <h2 style="margin: 0; color: white;">NOM-035 & LEAN</h2>
+            <h2 style="margin: 0; color: white;">NOM-035 & LEAN 2.0</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -689,7 +689,7 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
     
     if not lean_metrics:
         logger.warning("No LEAN metrics selected")
-        st.warning("⚠️ Seleccione al menos una métrica LEAN.", icon="⚠️")
+        st.warning("⚠️ Seleccione al menos una métrica LEAN 2.0", icon="⚠️")
         return
     
     filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
