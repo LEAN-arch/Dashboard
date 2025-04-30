@@ -988,7 +988,7 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
                     st.warning("🚨 No hay suficientes métricas.", icon="🚨")
                     return
                 
-                filtered_bien onderzoeken[metrics] = filtered_bienestar[metrics].apply(pd.to_numeric, errors='coerce')
+                filtered_bienestar[metrics] = filtered_bienestar[metrics].apply(pd.to_numeric, errors='coerce')
                 filtered_bienestar = filtered_bienestar.dropna(subset=metrics)
                 
                 if filtered_bienestar.empty:
