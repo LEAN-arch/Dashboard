@@ -391,8 +391,16 @@ def render_sidebar():
                     min_value=date(2022, 1, 1),
                     max_value=date(2025, 12, 31),
                     key="date_start",
-                    help="Fecha de inicio del período de análisis",
-                    format="DD/MM/YYYY"
+                    format="DD/MM/YYYY"  # Ensure this is set
+                )
+            with col2:
+                end_date = st.date_input(
+                    "Fin",
+                    value=date(2025, 12, 31),
+                    min_value=date(2022, 1, 1),
+                    max_value=date(2025, 12, 31),
+                    key="date_end",
+                    format="DD/MM/YYYY"  # Ensure this is set
                 )
             with col2:
                 min_end_date = start_date if start_date else date(2022, 1, 1)
