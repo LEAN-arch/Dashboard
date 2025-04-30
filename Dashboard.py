@@ -556,20 +556,33 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
         
                 with col2:
                     st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
+                    
+                    # Get the summary data
                     summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
                     
-                    # Reset index to ensure unique column names
+                    # Reset index to make Departamento a column
                     summary = summary.reset_index()
                     
-                    # Ensure unique column names by renaming duplicates
-                    summary.columns = [f"{col}_{i}" if col in summary.columns[:i] else col 
-                                      for i, col in enumerate(summary.columns)]
+                    # Identify numeric columns (excluding 'Departamento')
+                    numeric_cols = [col for col in summary.columns if col != 'Departamento' and pd.api.types.is_numeric_dtype(summary[col])]
                     
+                    # Create a style dictionary - format numeric columns with .1f, leave others as-is
+                    format_dict = {col: '{:.1f}' for col in numeric_cols}
+                    
+                    # Apply the styling
+                    styled_summary = summary.style.format(format_dict)
+                    
+                    # Apply background gradient only to numeric columns that are in nom_metrics
+                    gradient_cols = [col for col in numeric_cols if col in nom_metrics]
+                    if gradient_cols:
+                        styled_summary = styled_summary.background_gradient(
+                            cmap='RdYlGn',
+                            subset=gradient_cols
+                        )
+                    
+                    # Display the styled DataFrame
                     st.dataframe(
-                        summary.style.format('{:.1f}').background_gradient(
-                            cmap='RdYlGn', 
-                            subset=[col for col in summary.columns if col in nom_metrics]
-                        ),
+                        styled_summary,
                         use_container_width=True,
                         height=450
                     )
