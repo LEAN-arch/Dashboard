@@ -1010,7 +1010,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                     st.markdown("<p class='error-message'>Seleccione al menos un tipo de datos</p>", unsafe_allow_html=True)
                 else:
                     with st.spinner("Preparando datos..."):
-                        export_data = []
+                        export_data = []  # Initialize as empty list
                         if "NOM-035" in data_options:
                             export_data.append(nom_df.assign(Tipo="NOM-035"))
                         if "LEAN" in data_options:
