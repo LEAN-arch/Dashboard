@@ -7,7 +7,6 @@ from datetime import date, datetime, timedelta
 from sklearn.preprocessing import MinMaxScaler
 import warnings
 import io
-import base64
 import re
 warnings.filterwarnings('ignore')
 
@@ -259,7 +258,7 @@ def load_data():
             'Engagement': np.clip(base_well + np.random.normal(0, 3, len(dates)), 60, 90).round(1)
         })
 
-        # Action Plans (expanded)
+        # Action Plans
         action_plans = pd.DataFrame({
             'ID': range(1, 21),
             'Departamento': np.random.choice(DEPARTMENTS, 20),
@@ -326,6 +325,8 @@ if any(df is None for df in (nom_df, lean_df, bienestar_df)):
 def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column='Mes'):
     """Filter DataFrame by departments and date range."""
     try:
+        if date_column not in df.columns:
+            return df
         filtered_df = df[
             (df['Departamento'].isin(departamentos_filtro) if 'Departamento' in df.columns else True) &
             (df[date_column].dt.date >= start_date) &
@@ -410,7 +411,6 @@ def render_sidebar():
             efficiency_target = st.slider("Meta Eficiencia (%)", 50, 100, 75, help="Porcentaje objetivo de eficiencia operativa")
         
         st.markdown("---")
- Economy
         if st.button("🔄 Actualizar", use_container_width=True, help="Refresca los datos y visualizaciones"):
             st.cache_data.clear()
             st.rerun()
@@ -480,6 +480,11 @@ def kpi_card(value, title, target, icon, help_text, delta=None):
 # ========== TABS ==========
 def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics):
     st.markdown("#### 📋 Cumplimiento NOM-035", help="Monitorea el cumplimiento de la NOM-035 en factores psicosociales")
+    
+    if not nom_metrics:
+        st.warning("⚠️ Por favor, seleccione al menos una métrica NOM-035 en los filtros.", icon="⚠️")
+        return
+    
     filtered_nom = filter_dataframe(nom_df, departamentos_filtro, start_date, end_date)
     
     if filtered_nom.empty:
@@ -492,37 +497,40 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
         col1, col2 = st.columns([3, 2], gap="medium")
         with col1:
             with st.spinner("Cargando gráfico..."):
-                fig = px.line(
-                    filtered_nom.groupby(['Mes', 'Departamento'])[nom_metrics].mean().reset_index(),
-                    x="Mes",
-                    y=nom_metrics,
-                    color="Departamento",
-                    line_group="Departamento",
-                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
-                    labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
-                    height=450,
-                    hover_data={m: ':.1f' for m in nom_metrics}
-                )
-                fig.add_hline(
-                    y=nom_target,
-                    line_dash="dash",
-                    line_color=COLOR_PALETTE['warning'],
-                    annotation_text="Meta",
-                    annotation_position="top right"
-                )
-                fig.update_layout(
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    yaxis_range=[0, 100],
-                    legend_title_text='Departamento',
-                    xaxis_title="",
-                    margin=dict(l=30, r=30, t=50, b=30),
-                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                    showlegend=True,
-                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
-                    hovermode="x unified"
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                try:
+                    fig = px.line(
+                        filtered_nom.groupby(['Mes', 'Departamento'])[nom_metrics].mean().reset_index(),
+                        x="Mes",
+                        y=nom_metrics,
+                        color="Departamento",
+                        line_group="Departamento",
+                        color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
+                        labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
+                        height=450,
+                        hover_data={m: ':.1f' for m in nom_metrics}
+                    )
+                    fig.add_hline(
+                        y=nom_target,
+                        line_dash="dash",
+                        line_color=COLOR_PALETTE['warning'],
+                        annotation_text="Meta",
+                        annotation_position="top right"
+                    )
+                    fig.update_layout(
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        yaxis_range=[0, 100],
+                        legend_title_text='Departamento',
+                        xaxis_title="",
+                        margin=dict(l=30, r=30, t=50, b=30),
+                        font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                        showlegend=True,
+                        hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
+                        hovermode="x unified"
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.warning(f"Error al renderizar gráfico: {e}", icon="⚠️")
         
         with col2:
             st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
@@ -535,69 +543,77 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
     
     with nom_view2:
         with st.spinner("Cargando mapa de riesgo..."):
-            scaler = MinMaxScaler()
-            metrics = nom_metrics + ['Incidentes']
-            z_values = scaler.fit_transform(filtered_nom.groupby('Departamento')[metrics].mean())
-            fig_heat = go.Figure(data=go.Heatmap(
-                z=z_values.T,
-                x=filtered_nom['Departamento'].unique(),
-                y=metrics,
-                colorscale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
-                hoverongaps=False,
-                text=filtered_nom.groupby('Departamento')[metrics].mean().values.T.round(1),
-                texttemplate="%{text:.1f}",
-                colorbar=dict(title="Nivel", tickmode="array", tickvals=[0, 0.5, 1], ticktext=["Bajo", "Medio", "Alto"])
-            ))
-            fig_heat.update_layout(
-                title="Mapa de Riesgo Psicosocial",
-                xaxis_title="",
-                yaxis_title="",
-                height=500,
-                plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=50, r=50, t=60, b=50),
-                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
-            )
-            st.plotly_chart(fig_heat, use_container_width=True)
-            st.markdown("""
-            <div class="card" style="margin-top: 1rem;">
-                <p style="font-size: 0.875rem; margin: 0.5rem 0;">
-                    <strong>Interpretación:</strong> Valores altos en métricas positivas indican buen cumplimiento, mientras que Incidentes altos señalan riesgos.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            try:
+                scaler = MinMaxScaler()
+                metrics = nom_metrics + ['Incidentes']
+                z_values = scaler.fit_transform(filtered_nom.groupby('Departamento')[metrics].mean())
+                fig_heat = go.Figure(data=go.Heatmap(
+                    z=z_values.T,
+                    x=filtered_nom['Departamento'].unique(),
+                    y=metrics,
+                    colorscale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
+                    hoverongaps=False,
+                    text=filtered_nom.groupby('Departamento')[metrics].mean().values.T.round(1),
+                    texttemplate="%{text:.1f}",
+                    colorbar=dict(title="Nivel", tickmode="array", tickvals=[0, 0.5, 1], ticktext=["Bajo", "Medio", "Alto"])
+                ))
+                fig_heat.update_layout(
+                    title="Mapa de Riesgo Psicosocial",
+                    xaxis_title="",
+                    yaxis_title="",
+                    height=500,
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=50, r=50, t=60, b=50),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                )
+                st.plotly_chart(fig_heat, use_container_width=True)
+                st.markdown("""
+                <div class="card" style="margin-top: 1rem;">
+                    <p style="font-size: 0.875rem; margin: 0.5rem 0;">
+                        <strong>Interpretación:</strong> Valores altos en métricas positivas indican buen cumplimiento, mientras que Incidentes altos señalan riesgos.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            except Exception as e:
+                st.warning(f"Error al renderizar mapa de riesgo: {e}", icon="⚠️")
     
     with nom_view3:
         col1, col2 = st.columns([3, 1], gap="medium")
         with col1:
             with st.spinner("Cargando tendencias..."):
-                trend_data = filtered_nom.groupby(['Departamento', pd.Grouper(key='Mes', freq='Y')])[nom_metrics].mean().pct_change().reset_index()
-                fig_trend = px.bar(
-                    trend_data,
-                    x='Departamento',
-                    y=nom_metrics,
-                    facet_col='Mes',
-                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary']],
-                    labels={'value': 'Cambio Anual (%)'},
-                    height=450,
-                    hover_data={m: ':.2f' for m in nom_metrics}
-                )
-                fig_trend.add_hline(
-                    y=0,
-                    line_dash="dash",
-                    line_color=COLOR_PALETTE['muted'],
-                    annotation_text="Neutral",
-                    annotation_position="top right"
-                )
-                fig_trend.update_layout(
-                    title="Tendencia Anual de Cumplimiento",
-                    yaxis_title="Cambio (%)",
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    margin=dict(l=30, r=30, t=50, b=30),
-                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
-                )
-                st.plotly_chart(fig_trend, use_container_width=True)
+                try:
+                    trend_data = filtered_nom.groupby(['Departamento', pd.Grouper(key='Mes', freq='Y')])[nom_metrics].mean().pct_change().reset_index()
+                    fig_trend = px.bar(
+                        trend_data,
+                        x='Departamento',
+                        y=nom_metrics,
+                        facet_col='Mes',
+                        color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary']],
+                        labels={'value': 'Cambio Anual (%)'},
+                        height=450,
+                        hover_data={m: ':.2f' for m in nom_metrics}
+                    )
+                    fig_trend.add_hline(
+                        y=0,
+                        line_dash="dash",
+                        line_color=COLOR_PALETTE['muted'],
+                        annotation_text="Neutral",
+                        annotation_position="top right"
+                    )
+                    fig_trend.update_layout(
+                        title="Tendencia Anual de Cumplimiento",
+                        yaxis_title="Cambio (%)",
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        margin=dict(l=30, r=30, t=50, b=30),
+                        font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                        showlegend=True,
+                        hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                    )
+                    st.plotly_chart(fig_trend, use_container_width=True)
+                except Exception as e:
+                    st.warning(f"Error al renderizar tendencias: {e}", icon="⚠️")
         
         with col2:
             st.markdown("**📊 Interpretación**", help="Guía para interpretar las tendencias de cumplimiento")
@@ -631,91 +647,102 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
     col1, col2 = st.columns([3, 2], gap="medium")
     with col1:
         with st.spinner("Cargando gráfico de eficiencia..."):
-            fig_lean = px.area(
-                filtered_lean.groupby(['Mes', 'Departamento'])[lean_metrics].mean().reset_index(),
-                x='Mes',
-                y=lean_metrics,
-                color="Departamento",
-                line_group="Departamento",
-                color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
-                labels={'value': 'Valor', 'variable': 'Métrica'},
-                height=450,
-                hover_data={m: ':.1f' for m in lean_metrics}
-            )
-            fig_lean.add_hline(
-                y=lean_target,
-                line_dash="dash",
-                line_color=COLOR_PALETTE['warning'],
-                annotation_text="Meta",
-                annotation_position="top right"
-            )
-            fig_lean.update_layout(
-                title="Evolución de Métricas LEAN",
-                yaxis_range=[0, 100],
-                plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=30, r=30, t=50, b=30),
-                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
-                hovermode="x unified"
-            )
-            st.plotly_chart(fig_lean, use_container_width=True)
+            try:
+                fig_lean = px.area(
+                    filtered_lean.groupby(['Mes', 'Departamento'])[lean_metrics].mean().reset_index(),
+                    x='Mes',
+                    y=lean_metrics,
+                    color="Departamento",
+                    line_group="Departamento",
+                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
+                    labels={'value': 'Valor', 'variable': 'Métrica'},
+                    height=450,
+                    hover_data={m: ':.1f' for m in lean_metrics}
+                )
+                fig_lean.add_hline(
+                    y=lean_target,
+                    line_dash="dash",
+                    line_color=COLOR_PALETTE['warning'],
+                    annotation_text="Meta",
+                    annotation_position="top right"
+                )
+                fig_lean.update_layout(
+                    title="Evolución de Métricas LEAN",
+                    yaxis_range=[0, 100],
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=30, r=30, t=50, b=30),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
+                    hovermode="x unified"
+                )
+                st.plotly_chart(fig_lean, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Error al renderizar gráfico de eficiencia: {e}", icon="⚠️")
         
         with st.spinner("Cargando análisis de desperdicio..."):
-            grouped_lean = filtered_lean.groupby('Departamento')[lean_metrics + (['Proyectos Activos'] if 'Proyectos Activos' in filtered_lean.columns else [])].mean().reset_index()
-            size_col = 'Proyectos Activos' if 'Proyectos Activos' in grouped_lean.columns else lean_metrics[0]
-            fig_scatter = px.scatter_3d(
-                grouped_lean,
-                x=lean_metrics[0],
-                y=lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0],
-                z=lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0],
-                color='Departamento',
-                size=size_col,
-                hover_name='Departamento',
-                labels={
-                    lean_metrics[0]: lean_metrics[0],
-                    lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0]: lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0],
-                    lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0]: lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0]
-                },
-                height=450
-            )
-            fig_scatter.update_layout(
-                title="Análisis Multidimensional LEAN",
-                plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=30, r=30, t=50, b=30),
-                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
-            )
-            st.plotly_chart(fig_scatter, use_container_width=True)
+            try:
+                grouped_lean = filtered_lean.groupby('Departamento')[lean_metrics + (['Proyectos Activos'] if 'Proyectos Activos' in filtered_lean.columns else [])].mean().reset_index()
+                size_col = 'Proyectos Activos' if 'Proyectos Activos' in grouped_lean.columns else lean_metrics[0]
+                fig_scatter = px.scatter_3d(
+                    grouped_lean,
+                    x=lean_metrics[0],
+                    y=lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0],
+                    z=lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0],
+                    color='Departamento',
+                    size=size_col,
+                    hover_name='Departamento',
+                    labels={
+                        lean_metrics[0]: lean_metrics[0],
+                        lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0]: lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0],
+                        lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0]: lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0]
+                    },
+                    height=450
+                )
+                fig_scatter.update_layout(
+                    title="Análisis Multidimensional LEAN",
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    margin=dict(l=30, r=30, t=50, b=30),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                )
+                st.plotly_chart(fig_scatter, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Error al renderizar análisis de desperdicio: {e}", icon="⚠️")
     
     with col2:
         st.markdown("**📊 Comparación de Métricas**", help="Radar comparativo de métricas LEAN por departamento")
         with st.spinner("Cargando radar..."):
-            scaler = MinMaxScaler()
-            lean_radar = filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index()
-            lean_radar[lean_metrics] = scaler.fit_transform(lean_radar[lean_metrics])
-            
-            fig_radar = go.Figure()
-            for _, row in lean_radar.iterrows():
-                fig_radar.add_trace(go.Scatterpolar(
-                    r=[row[m] for m in lean_metrics],
-                    theta=lean_metrics,
-                    fill='toself',
-                    name=row['Departamento'],
-                    line=dict(width=2),
-                    hovertemplate=f"<b>{row['Departamento']}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>"
-                ))
-            fig_radar.update_layout(
-                polar=dict(
-                    radialaxis=dict(visible=True, range=[0, 1], showticklabels=False),
-                    angularaxis=dict(showticklabels=True, tickfont_size=12)
-                ),
-                height=450,
-                showlegend=True,
-                margin=dict(l=50, r=50, t=30, b=50),
-                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
-            )
-            st.plotly_chart(fig_radar, use_container_width=True)
+            try:
+                scaler = MinMaxScaler()
+                lean_radar = filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index()
+                lean_radar[lean_metrics] = scaler.fit_transform(lean_radar[lean_metrics])
+                
+                fig_radar = go.Figure()
+                for _, row in lean_radar.iterrows():
+                    fig_radar.add_trace(go.Scatterpolar(
+                        r=[row[m] for m in lean_metrics],
+                        theta=lean_metrics,
+                        fill='toself',
+                        name=row['Departamento'],
+                        line=dict(width=2),
+                        hovertemplate=f"<b>{row['Departamento']}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>"
+                    ))
+                fig_radar.update_layout(
+                    polar=dict(
+                        radialaxis=dict(visible=True, range=[0, 1], showticklabels=False),
+                        angularaxis=dict(showticklabels=True, tickfont_size=12)
+                    ),
+                    height=450,
+                    showlegend=True,
+                    margin=dict(l=50, r=50, t=30, b=50),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                )
+                st.plotly_chart(fig_radar, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Error al renderizar radar: {e}", icon="⚠️")
         
         st.markdown("**📌 Detalle de Proyectos**", help="Resumen de métricas LEAN y proyectos activos por departamento")
         with st.expander("📌 Detalle de Proyectos", expanded=True):
@@ -769,65 +796,72 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
     
     with wellbeing_view1:
         with st.spinner("Cargando tendencias..."):
-            fig_bienestar = px.line(
-                filtered_bienestar,
-                x='Mes',
-                y=['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement'],
-                markers=True,
-                color_discrete_sequence=[
-                    COLOR_PALETTE['success'],
-                    COLOR_PALETTE['danger'],
-                    COLOR_PALETTE['warning'],
-                    COLOR_PALETTE['accent']
-                ],
-                labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
-                height=450,
-                hover_data={'Índice Bienestar': ':.1f', 'Ausentismo': ':.1f', 'Rotación': ':.1f', 'Engagement': ':.1f'}
-            )
-            fig_bienestar.add_hline(
-                y=wellbeing_target,
-                line_dash="dash",
-                line_color=COLOR_PALETTE['warning'],
-                annotation_text="Meta Bienestar",
-                annotation_position="top right"
-            )
-            fig_bienestar.update_layout(
-                title="Evolución Mensual",
-                yaxis_range=[0, 100],
-                plot_bgcolor='rgba(0,0,0,0)',
-                legend_title="Métrica",
-                margin=dict(l=30, r=30, t=50, b=30),
-                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
-                hovermode="x unified"
-            )
-            st.plotly_chart(fig_bienestar, use_container_width=True)
+            try:
+                fig_bienestar = px.line(
+                    filtered_bienestar,
+                    x='Mes',
+                    y=['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement'],
+                    markers=True,
+                    color_discrete_sequence=[
+                        COLOR_PALETTE['success'],
+                        COLOR_PALETTE['danger'],
+                        COLOR_PALETTE['warning'],
+                        COLOR_PALETTE['accent']
+                    ],
+                    labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
+                    height=450,
+                    hover_data={'Índice Bienestar': ':.1f', 'Ausentismo': ':.1f', 'Rotación': ':.1f', 'Engagement': ':.1f'}
+                )
+                fig_bienestar.add_hline(
+                    y=wellbeing_target,
+                    line_dash="dash",
+                    line_color=COLOR_PALETTE['warning'],
+                    annotation_text="Meta Bienestar",
+                    annotation_position="top right"
+                )
+                fig_bienestar.update_layout(
+                    title="Evolución Mensual",
+                    yaxis_range=[0, 100],
+                    plot_bgcolor='rgba(0,0,0,0)',
+                    paper_bgcolor='rgba(0,0,0,0)',
+                    legend_title="Métrica",
+                    margin=dict(l=30, r=30, t=50, b=30),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
+                    hovermode="x unified"
+                )
+                st.plotly_chart(fig_bienestar, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Error al renderizar tendencias: {e}", icon="⚠️")
     
     with wellbeing_view2:
         with st.spinner("Cargando correlaciones..."):
-            corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Engagement']].corr()
-            fig_corr = px.imshow(
-                corr_matrix,
-                text_auto='.2f',
-                color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
-                range_color=[-1, 1],
-                labels=dict(x="", y="", color="Correlación"),
-                height=450
-            )
-            fig_corr.update_layout(
-                title="Matriz de Correlación",
-                margin=dict(l=50, r=50, t=60, b=50),
-                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
-            )
-            st.plotly_chart(fig_corr, use_container_width=True)
-            st.markdown("""
-            <div class="card" style="margin-top: 1rem;">
-                <p style="font-size: 0.875rem; margin: 0.5rem 0;">
-                    <strong>Interpretación:</strong> Valores cercanos a 1 indican correlación positiva fuerte, -1 indica correlación negativa, y 0 indica poca o ninguna correlación.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+            try:
+                corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Engagement']].corr()
+                fig_corr = px.imshow(
+                    corr_matrix,
+                    text_auto='.2f',
+                    color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
+                    range_color=[-1, 1],
+                    labels=dict(x="", y="", color="Correlación"),
+                    height=450
+                )
+                fig_corr.update_layout(
+                    title="Matriz de Correlación",
+                    margin=dict(l=50, r=50, t=60, b=50),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                )
+                st.plotly_chart(fig_corr, use_container_width=True)
+                st.markdown("""
+                <div class="card" style="margin-top: 1rem;">
+                    <p style="font-size: 0.875rem; margin: 0.5rem 0;">
+                        <strong>Interpretación:</strong> Valores cercanos a 1 indican correlación positiva fuerte, -1 indica correlación negativa, y 0 indica poca o ninguna correlación.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+            except Exception as e:
+                st.warning(f"Error al renderizar correlaciones: {e}", icon="⚠️")
 
 def render_action_plans_tab(departamentos_filtro, start_date, end_date):
     st.markdown("#### 📝 Planes de Acción", help="Gestión de planes de acción para abordar problemas identificados")
@@ -1005,7 +1039,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                 elif not subject:
                     st.markdown("<p class='error-message'>El campo Asunto es obligatorio</p>", unsafe_allow_html=True)
                 else:
-                    st.warning("⚠️ La funcionalidad de envío de correo no está implementada en esta versión.", icon="⚠️")
+                    st.warning("⚠️ La funcionalidad de envío de correo no está implementada in this version.", icon="⚠️")
     
     with col3:
         with st.expander("📊 Exportar Datos", expanded=False):
@@ -1056,7 +1090,6 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                             
                             st.success(f"✅ Datos exportados como {export_format}", icon="✅")
                             st.download_button(
- adidas
                                 label=f"📥 Descargar .{ext}",
                                 data=data,
                                 file_name=f"nom_lean_data_{datetime.now().strftime('%Y%m%d')}.{ext}",
