@@ -18,7 +18,7 @@ st.set_page_config(
 )
 
 # ========== CONSTANTS AND CONFIGURATION ==========
-DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI', 'Mantenimiento', 'R&D', 'Ingeniería"]
+DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI', 'Mantenimiento', 'R&D', 'Ingeniería']
 
 # Professional color scheme
 COLOR_PALETTE = {
