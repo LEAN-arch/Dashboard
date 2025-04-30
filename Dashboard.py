@@ -346,6 +346,17 @@ def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column
         st.warning(f"Error al filtrar datos: {e}", icon="⚠️")
         return pd.DataFrame(columns=df.columns)
 
+def export_to_csv(df, filename):
+    """Export DataFrame to CSV and provide download button."""
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
+    st.download_button(
+        label="📥 Descargar CSV",
+        data=csv_buffer.getvalue(),
+        file_name=filename,
+        mime="text/csv"
+    )
+
 # Sidebar
 def render_sidebar():
     with st.sidebar:
@@ -419,6 +430,30 @@ def render_sidebar():
             lean_target = st.slider("Meta LEAN (%)", 50, 100, 80)
             wellbeing_target = st.slider("Meta Bienestar (%)", 50, 100, 85)
             efficiency_target = st.slider("Meta Eficiencia (%)", 50, 100, 75)
+        
+        with st.expander("🛠 Configuración", expanded=False):
+            st.markdown("**Preferencias**")
+            theme = st.selectbox("Tema", ["Claro", "Oscuro"], index=0)
+            log_level = st.selectbox("Nivel de Registro", ["INFO", "DEBUG", "ERROR"], index=0)
+            if log_level == "DEBUG":
+                logger.setLevel(logging.DEBUG)
+            elif log_level == "ERROR":
+                logger.setLevel(logging.ERROR)
+            else:
+                logger.setLevel(logging.INFO)
+            if theme == "Oscuro":
+                st.markdown("""
+                <style>
+                html, body, [class*="css"] {
+                    background-color: #1f2937;
+                    color: #f8fafc;
+                }
+                .card {
+                    background-color: #374151;
+                    border: 1px solid #4b5563;
+                }
+                </style>
+                """, unsafe_allow_html=True)
         
         st.markdown("---")
         if st.button("🔄 Actualizar", use_container_width=True):
@@ -563,6 +598,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                         use_container_width=True,
                         height=400
                     )
+                    export_to_csv(summary, "nom035_summary.csv")
                 else:
                     st.info("No hay métricas disponibles.", icon="ℹ️")
             except Exception as e:
@@ -830,6 +866,7 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                             summary.style.background_gradient(cmap='Greens', subset=summary_cols).format(format_dict),
                             use_container_width=True
                         )
+                        export_to_csv(summary, "lean_summary.csv")
                     except Exception as e:
                         logger.warning(f"Styling failed: {e}, displaying without styling")
                         st.dataframe(summary, use_container_width=True)
@@ -902,6 +939,7 @@ def render_wellbeing_tab(bienestar_df, wellbeing_target, start_date, end_date):
                 summary.style.format(format_dict).background_gradient(cmap='RdYlGn'),
                 use_container_width=True
             )
+            export_to_csv(filtered_bienestar, "bienestar_data.csv")
         except Exception as e:
             logger.error(f"Error rendering Wellbeing summary: {e}")
             st.warning(f"Error al renderizar resumen: {e}", icon="⚠️")
@@ -962,9 +1000,39 @@ def render_action_plans_tab(action_plans_df, departamentos_filtro, start_date, e
                     use_container_width=True,
                     height=400
                 )
+                export_to_csv(filtered_plans, "action_plans.csv")
             except Exception as e:
                 logger.error(f"Error rendering Action Plans table: {e}")
                 st.warning(f"Error al renderizar tabla: {e}", icon="⚠️")
+        
+        with st.spinner("Cargando cronograma..."):
+            try:
+                logger.info("Rendering Action Plans Gantt chart")
+                gantt_data = filtered_plans.copy()
+                gantt_data['Inicio'] = gantt_data['Plazo'] - pd.Timedelta(days=30)
+                gantt_data['Fin'] = gantt_data['Plazo']
+                fig_gantt = px.timeline(
+                    gantt_data,
+                    x_start='Inicio',
+                    x_end='Fin',
+                    y='Acción',
+                    color='% Avance',
+                    hover_data=['Departamento', 'Responsable', 'Estado'],
+                    color_continuous_scale='Blues',
+                    height=400
+                )
+                fig_gantt.update_yaxes(autorange="reversed")
+                fig_gantt.update_layout(
+                    title="Cronograma de Planes",
+                    xaxis_title="Fecha",
+                    yaxis_title="Acción",
+                    margin=dict(l=20, r=20, t=40, b=20),
+                    font=dict(family="Inter", size=12)
+                )
+                st.plotly_chart(fig_gantt, use_container_width=True)
+            except Exception as e:
+                logger.error(f"Error rendering Action Plans Gantt chart: {e}")
+                st.warning(f"Error al renderizar cronograma: {e}", icon="⚠️")
     
     with col2:
         st.markdown("**📊 Progreso por Departamento**")
