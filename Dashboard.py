@@ -68,7 +68,7 @@ st.markdown(f"""
 <style>
     /* Main container */
     .main {{
-        background-color: {COLOR_PALETTE['background']};
+        background: {COLOR_PALETTE['background']};
     }}
     
     /* Sidebar */
