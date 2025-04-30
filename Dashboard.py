@@ -235,7 +235,7 @@ with st.sidebar:
 st.markdown(f"""
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
     <div>
-        <h1 style="margin-bottom: 5px; color: {COLOR_PALETTE['primary']};">Sistema Integral NOM-035 & LEAN 2.0</h1>
+        <h1 style="margin-bottom: 5px; color: {COLOR_PALETTE['primary']};">Sistema Integral NOM-035-STPS-2018 & LEAN 2.0</h1>
         <p style="margin-top: 0; color: {COLOR_PALETTE['text']}; font-size: 1.1rem;">
             Monitoreo Estratégico de Bienestar Psicosocial y Eficiencia Operacional
         </p>
