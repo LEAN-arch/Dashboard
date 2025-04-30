@@ -206,81 +206,99 @@ h1, h2, h3, h4, h5, h6 {
 def load_data():
     try:
         np.random.seed(42)
-        # Realistic data with correlations
         n_depts = len(DEPARTMENTS)
-        base_evals = np.random.normal(85, 8, n_depts)
-        nom = pd.DataFrame({
-            'Departamento': DEPARTMENTS,
-            'Evaluaciones': np.clip(base_evals, 70, 100).round(1),
-            'Capacitaciones': np.clip(base_evals + np.random.normal(0, 5, n_depts), 60, 100).round(1),
-            'Incidentes': np.clip(np.round(10 - base_evals / 10 + np.random.normal(0, 1, n_depts)), 0, 10),
-            'Tendencia': np.round(np.random.normal(0.5, 1.5, n_depts), 2)
-        })
-        
-        base_eff = np.random.normal(80, 10, n_depts)
-        lean = pd.DataFrame({
-            'Departamento': DEPARTMENTS,
-            'Eficiencia': np.clip(base_eff, 60, 95).round(1),
-            'Reducción MURI/MURA/MUDA': np.clip(base_eff / 4 + np.random.normal(0, 3, n_depts), 5, 25).round(1),
-            'Proyectos Activos': np.clip(np.round(base_eff / 20 + np.random.normal(0, 1, n_depts)), 1, 6),
-            '5S+2_Score': np.clip(base_eff + np.random.normal(0, 5, n_depts), 60, 100).round(1),
-            'Kaizen Colectivo': np.clip(base_eff - np.random.normal(5, 5, n_depts), 50, 90).round(1)
-        })
-        
-        dates = pd.date_range(start='2024-01-01', end='2024-12-31', freq='M')
-        n_months = len(dates)
-        base_well = np.linspace(70, 85, n_months)
-        bienestar = pd.DataFrame({
+
+        # NOM-035 Data (2022-2025, monthly)
+        dates = pd.date_range(start='2022-01-01', end='2025-12-31', freq='M')
+        nom_data = []
+        for dept in DEPARTMENTS:
+            base_evals = np.linspace(80, 90, len(dates)) + np.random.normal(0, 3, len(dates))
+            for i, date in enumerate(dates):
+                nom_data.append({
+                    'Departamento': dept,
+                    'Mes': date,
+                    'Evaluaciones': np.clip(base_evals[i], 70, 100).round(1),
+                    'Capacitaciones': np.clip(base_evals[i] + np.random.normal(0, 5), 60, 100).round(1),
+                    'Incidentes': np.clip(np.round(10 - base_evals[i] / 10 + np.random.normal(0, 1)), 0, 10),
+                    'Satisfacción Laboral': np.clip(base_evals[i] + np.random.normal(0, 4), 65, 95).round(1)
+                })
+        nom_df = pd.DataFrame(nom_data)
+
+        # LEAN Data (2022-2025, monthly)
+        lean_data = []
+        for dept in DEPARTMENTS:
+            base_eff = np.linspace(75, 85, len(dates)) + np.random.normal(0, 4, len(dates))
+            for i, date in enumerate(dates):
+                lean_data.append({
+                    'Departamento': dept,
+                    'Mes': date,
+                    'Eficiencia': np.clip(base_eff[i], 60, 95).round(1),
+                    'Reducción MURI/MURA/MUDA': np.clip(base_eff[i] / 4 + np.random.normal(0, 3), 5, 25).round(1),
+                    'Proyectos Activos': np.clip(np.round(base_eff[i] / 20 + np.random.normal(0, 1)), 1, 6),
+                    '5S+2_Score': np.clip(base_eff[i] + np.random.normal(0, 5), 60, 100).round(1),
+                    'Kaizen Colectivo': np.clip(base_eff[i] - np.random.normal(5, 5), 50, 90).round(1),
+                    'Tiempo Ciclo': np.clip(100 - base_eff[i] + np.random.normal(0, 5), 10, 50).round(1)
+                })
+        lean_df = pd.DataFrame(lean_data)
+
+        # Bienestar Data (2022-2025, monthly)
+        base_well = np.linspace(70, 85, len(dates))
+        bienestar_df = pd.DataFrame({
             'Mes': dates,
-            'Índice Bienestar': np.clip(base_well + np.random.normal(0, 2, n_months), 60, 90).round(1),
-            'Ausentismo': np.clip(10 - base_well / 10 + np.random.normal(0, 0.5, n_months), 5, 15).round(1),
-            'Rotación': np.clip(15 - base_well / 15 + np.random.normal(0, 0.7, n_months), 5, 20).round(1),
-            'Encuestas': np.clip(np.round(80 + np.random.normal(0, 5, n_months)), 75, 100)
+            'Índice Bienestar': np.clip(base_well + np.random.normal(0, 2, len(dates)), 60, 90).round(1),
+            'Ausentismo': np.clip(10 - base_well / 10 + np.random.normal(0, 0.5, len(dates)), 5, 15).round(1),
+            'Rotación': np.clip(15 - base_well / 15 + np.random.normal(0, 0.7, len(dates)), 5, 20).round(1),
+            'Encuestas': np.clip(np.round(80 + np.random.normal(0, 5, len(dates))), 75, 100),
+            'Engagement': np.clip(base_well + np.random.normal(0, 3, len(dates)), 60, 90).round(1)
         })
-        
+
+        # Action Plans (expanded)
         action_plans = pd.DataFrame({
-            'ID': range(1, 11),
-            'Departamento': np.random.choice(DEPARTMENTS, 10),
+            'ID': range(1, 21),
+            'Departamento': np.random.choice(DEPARTMENTS, 20),
             'Problema': [
-                'Bajo cumplimiento en evaluaciones psicosociales',
-                'Ineficiencias en la línea de ensamblaje',
-                'Alta rotación en el turno nocturno',
-                'Exceso de desperdicio en materiales',
-                'Falta de estandarización en procesos',
-                'Baja participación en capacitaciones',
-                'Retrasos en la cadena de suministro',
-                'Fallas recurrentes en maquinaria',
-                'Deficiencias en la documentación de procesos',
-                'Bajo índice de bienestar reportado'
+                'Bajo cumplimiento en evaluaciones psicosociales', 'Ineficiencias en la línea de ensamblaje',
+                'Alta rotación en el turno nocturno', 'Exceso de desperdicio en materiales',
+                'Falta de estandarización en procesos', 'Baja participación en capacitaciones',
+                'Retrasos en la cadena de suministro', 'Fallas recurrentes en maquinaria',
+                'Deficiencias en la documentación de procesos', 'Bajo índice de bienestar reportado',
+                'Altos tiempos de ciclo en producción', 'Falta de adopción de 5S+2',
+                'Baja colaboración interdepartamental', 'Errores frecuentes en inventario',
+                'Falta de capacitación en herramientas LEAN', 'Bajo engagement en encuestas',
+                'Exceso de MURA en procesos', 'Problemas de ergonomía en puestos',
+                'Retrasos en proyectos de mejora', 'Falta de comunicación en equipos'
             ],
             'Acción': [
-                'Implementar evaluaciones mensuales',
-                'Aplicar estudio de tiempos y movimientos',
-                'Mejorar incentivos para turno nocturno',
-                'Introducir programa 5R para materiales',
-                'Desarrollar manual de procedimientos',
-                'Programar sesiones de capacitación obligatorias',
-                'Optimizar logística con proveedores',
-                'Implementar mantenimiento predictivo',
-                'Capacitar equipo en documentación',
-                'Lanzar programa de bienestar integral'
+                'Implementar evaluaciones mensuales', 'Aplicar estudio de tiempos y movimientos',
+                'Mejorar incentivos para turno nocturno', 'Introducir programa 5R para materiales',
+                'Desarrollar manual de procedimientos', 'Programar sesiones de capacitación obligatorias',
+                'Optimizar logística con proveedores', 'Implementar mantenimiento predictivo',
+                'Capacitar equipo en documentación', 'Lanzar programa de bienestar integral',
+                'Rediseñar flujo de producción', 'Auditorías mensuales de 5S+2',
+                'Crear equipos interdepartamentales', 'Implementar sistema de gestión de inventarios',
+                'Capacitar en metodologías LEAN', 'Rediseñar encuestas de engagement',
+                'Estandarizar procesos para reducir MURA', 'Realizar estudios ergonómicos',
+                'Establecer cronogramas estrictos', 'Implementar reuniones diarias de equipo'
             ],
             'Responsable': [
-                'Ana Gómez', 'Pedro Sánchez', 'Lucía Fernández', 'Carlos Ruiz', 
-                'María López', 'Juan Martínez', 'Sofía Pérez', 'Diego García', 
-                'Elena Torres', 'Miguel Ángel'
+                'Ana Gómez', 'Pedro Sánchez', 'Lucía Fernández', 'Carlos Ruiz', 'María López',
+                'Juan Martínez', 'Sofía Pérez', 'Diego García', 'Elena Torres', 'Miguel Ángel',
+                'Laura Ramírez', 'Jorge Díaz', 'Clara Morales', 'Andrés Vega', 'Patricia Soto',
+                'Felipe Castro', 'Marina Ortiz', 'Raúl Méndez', 'Isabel Cruz', 'Héctor Luna'
             ],
-            'Plazo': [date(2024, i, 15) for i in range(6, 11)] + [date(2024, i, 30) for i in range(6, 11)],
-            'Estado': np.random.choice(['Pendiente', 'En progreso', 'Completado'], 10, p=[0.3, 0.5, 0.2]),
-            'Prioridad': np.random.choice(['Alta', 'Media', 'Baja'], 10, p=[0.4, 0.4, 0.2]),
-            '% Avance': np.random.choice([0, 25, 50, 75, 100], 10)
+            'Plazo': pd.date_range(start='2025-01-15', end='2025-10-30', periods=20),
+            'Estado': np.random.choice(['Pendiente', 'En progreso', 'Completado'], 20, p=[0.3, 0.5, 0.2]),
+            'Prioridad': np.random.choice(['Alta', 'Media', 'Baja'], 20, p=[0.4, 0.4, 0.2]),
+            '% Avance': np.random.choice([0, 25, 50, 75, 100], 20),
+            'Costo Estimado': np.random.randint(5000, 50000, 20)
         })
-        return nom, lean, bienestar, action_plans
+
+        return nom_df, lean_df, bienestar_df, action_plans
     except Exception as e:
         st.error(f"Error al cargar datos: {e}", icon="🚨")
         return None, None, None, None
 
-# Initialize session state for action plans
+# Initialize session state
 if 'action_plans_df' not in st.session_state:
     _, _, _, action_plans = load_data()
     st.session_state.action_plans_df = action_plans
@@ -308,9 +326,9 @@ def render_sidebar():
             with col1:
                 start_date = st.date_input(
                     "Inicio",
-                    value=date(2024, 1, 1),
-                    min_value=date(2024, 1, 1),
-                    max_value=date(2024, 12, 31),
+                    value=date(2022, 1, 1),
+                    min_value=date(2022, 1, 1),
+                    max_value=date(2025, 12, 31),
                     key="date_start",
                     help="Fecha de inicio del período de análisis",
                     format="DD/MM/YYYY"
@@ -318,9 +336,9 @@ def render_sidebar():
             with col2:
                 end_date = st.date_input(
                     "Fin",
-                    value=date(2024, 12, 31),
+                    value=date(2025, 12, 31),
                     min_value=start_date,
-                    max_value=date(2024, 12, 31),
+                    max_value=date(2025, 12, 31),
                     key="date_end",
                     help="Fecha de fin del período de análisis",
                     format="DD/MM/YYYY"
@@ -338,6 +356,20 @@ def render_sidebar():
                 key="dept_filter",
                 help="Seleccione uno o más departamentos para filtrar los datos"
             )
+            
+            st.markdown("**Métricas**", help="Seleccione métricas para visualizar")
+            nom_metrics = st.multiselect(
+                "Métricas NOM-035",
+                ['Evaluaciones', 'Capacitaciones', 'Incidentes', 'Satisfacción Laboral'],
+                default=['Evaluaciones', 'Capacitaciones'],
+                key="nom_metrics"
+            )
+            lean_metrics = st.multiselect(
+                "Métricas LEAN",
+                ['Eficiencia', 'Reducción MURI/MURA/MUDA', 'Proyectos Activos', '5S+2_Score', 'Kaizen Colectivo', 'Tiempo Ciclo'],
+                default=['Eficiencia', '5S+2_Score'],
+                key="lean_metrics"
+            )
         
         with st.expander("⚙️ Metas", expanded=False):
             st.markdown("**Establecer Metas**", help="Defina los objetivos para cada métrica")
@@ -354,12 +386,12 @@ def render_sidebar():
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #a0aec0; font-size: 0.75rem;">
-            v3.1.0<br>
+            v3.2.0<br>
             © 2025 RH Analytics
         </div>
         """, unsafe_allow_html=True)
     
-    return start_date, end_date, departamentos_filtro, (nom_target, lean_target, wellbeing_target, efficiency_target)
+    return start_date, end_date, departamentos_filtro, (nom_target, lean_target, wellbeing_target, efficiency_target), nom_metrics, lean_metrics
 
 # ========== HEADER ==========
 def render_header(start_date, end_date):
@@ -368,7 +400,7 @@ def render_header(start_date, end_date):
         <div>
             <h1 style="margin: 0;">Sistema Integral NOM-035 & LEAN 2.0</h1>
             <p style="color: var(--muted); font-size: 1.125rem; margin: 0;">
-                Monitoreo Estratégico de Bienestar y Eficiencia
+                Monitoreo Estratégico de Bienestar y Eficiencia (2022-2025)
             </p>
         </div>
         <div class="card" style="padding: 0.75rem 1.5rem;">
@@ -383,12 +415,12 @@ def render_header(start_date, end_date):
     """, unsafe_allow_html=True)
 
 # ========== KPI CARDS ==========
-def kpi_card(value, title, target, icon, help_text):
-    delta = value - target
+def kpi_card(value, title, target, icon, help_text, delta=None):
+    delta_value = delta if delta is not None else value - target
     percentage = min(100, (value / target * 100)) if target != 0 else 0
     status = "✅" if value >= target else "⚠️" if value >= target - 10 else "❌"
     color = COLOR_PALETTE['success'] if value >= target else COLOR_PALETTE['warning'] if value >= target - 10 else COLOR_PALETTE['danger']
-    delta_text = f"+{delta:.1f}% sobre meta" if delta >= 0 else f"{delta:.1f}% bajo meta"
+    delta_text = f"+{delta_value:.1f}% sobre meta" if delta_value >= 0 else f"{delta_value:.1f}% bajo meta"
     
     st.markdown(f"""
     <div class="card" role="region" aria-label="{title}">
@@ -414,12 +446,16 @@ def kpi_card(value, title, target, icon, help_text):
     st.markdown(f"<span title='{help_text}'></span>", unsafe_allow_html=True)
 
 # ========== TABS ==========
-def render_nom_tab(nom_df, departamentos_filtro, nom_target):
+def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics):
     st.markdown("#### 📋 Cumplimiento NOM-035", help="Monitorea el cumplimiento de la NOM-035 en factores psicosociales")
-    filtered_nom = nom_df[nom_df['Departamento'].isin(departamentos_filtro)]
+    filtered_nom = nom_df[
+        (nom_df['Departamento'].isin(departamentos_filtro)) &
+        (nom_df['Mes'].dt.date >= start_date) &
+        (nom_df['Mes'].dt.date <= end_date)
+    ]
     
     if filtered_nom.empty:
-        st.warning("⚠️ No hay datos disponibles para los departamentos seleccionados", icon="⚠️")
+        st.warning("⚠️ No hay datos disponibles para los filtros seleccionados", icon="⚠️")
         return
     
     nom_view1, nom_view2, nom_view3 = st.tabs(["📊 Métricas", "🔍 Mapa de Riesgo", "📈 Tendencias"])
@@ -428,15 +464,16 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
         col1, col2 = st.columns([3, 2], gap="medium")
         with col1:
             with st.spinner("Cargando gráfico..."):
-                fig = px.bar(
-                    filtered_nom,
-                    x="Departamento",
-                    y=["Evaluaciones", "Capacitaciones"],
-                    barmode="group",
-                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary']],
+                fig = px.line(
+                    filtered_nom.groupby(['Mes', 'Departamento'])[nom_metrics].mean().reset_index(),
+                    x="Mes",
+                    y=nom_metrics,
+                    color="Departamento",
+                    line_group="Departamento",
+                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
                     labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
                     height=450,
-                    hover_data={'Evaluaciones': ':.1f', 'Capacitaciones': ':.1f'}
+                    hover_data={m: ':.1f' for m in nom_metrics}
                 )
                 fig.add_hline(
                     y=nom_target,
@@ -449,24 +486,21 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
                     plot_bgcolor='rgba(0,0,0,0)',
                     paper_bgcolor='rgba(0,0,0,0)',
                     yaxis_range=[0, 100],
-                    legend_title_text='Métrica',
+                    legend_title_text='Departamento',
                     xaxis_title="",
                     margin=dict(l=30, r=30, t=50, b=30),
                     font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
                     showlegend=True,
-                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
+                    hovermode="x unified"
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
         with col2:
             st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
+            summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
             st.dataframe(
-                filtered_nom.set_index('Departamento').style.format({
-                    'Evaluaciones': '{:.1f}',
-                    'Capacitaciones': '{:.1f}',
-                    'Incidentes': '{:.0f}',
-                    'Tendencia': '{:.2f}'
-                }).background_gradient(cmap='RdYlGn', subset=['Evaluaciones', 'Capacitaciones']),
+                summary.style.format('{:.1f}').background_gradient(cmap='RdYlGn', subset=nom_metrics),
                 use_container_width=True,
                 height=450
             )
@@ -474,14 +508,15 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
     with nom_view2:
         with st.spinner("Cargando mapa de riesgo..."):
             scaler = MinMaxScaler()
-            z_values = scaler.fit_transform(filtered_nom[['Evaluaciones', 'Capacitaciones', 'Incidentes']])
+            metrics = nom_metrics + ['Incidentes']
+            z_values = scaler.fit_transform(filtered_nom.groupby('Departamento')[metrics].mean())
             fig_heat = go.Figure(data=go.Heatmap(
                 z=z_values.T,
-                x=filtered_nom['Departamento'],
-                y=['Evaluaciones', 'Capacitaciones', 'Incidentes'],
+                x=filtered_nom['Departamento'].unique(),
+                y=metrics,
                 colorscale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
                 hoverongaps=False,
-                text=filtered_nom[['Evaluaciones', 'Capacitaciones', 'Incidentes']].values.T,
+                text=filtered_nom.groupby('Departamento')[metrics].mean().values.T.round(1),
                 texttemplate="%{text:.1f}",
                 colorbar=dict(title="Nivel", tickmode="array", tickvals=[0, 0.5, 1], ticktext=["Bajo", "Medio", "Alto"])
             ))
@@ -499,7 +534,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
             st.markdown("""
             <div class="card" style="margin-top: 1rem;">
                 <p style="font-size: 0.875rem; margin: 0.5rem 0;">
-                    <strong>Interpretación:</strong> Valores altos en Evaluaciones y Capacitaciones indican buen cumplimiento, mientras que Incidentes altos señalan riesgos psicosociales.
+                    <strong>Interpretación:</strong> Valores altos en métricas positivas indican buen cumplimiento, mientras que Incidentes altos señalan riesgos.
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -508,16 +543,16 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
         col1, col2 = st.columns([3, 1], gap="medium")
         with col1:
             with st.spinner("Cargando tendencias..."):
+                trend_data = filtered_nom.groupby(['Departamento', pd.Grouper(key='Mes', freq='Y')])[nom_metrics].mean().pct_change().reset_index()
                 fig_trend = px.bar(
-                    filtered_nom,
+                    trend_data,
                     x='Departamento',
-                    y='Tendencia',
-                    color='Tendencia',
-                    color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
-                    range_color=[-3, 3],
-                    labels={'Tendencia': 'Cambio mensual (%)'},
+                    y=nom_metrics,
+                    facet_col='Mes',
+                    color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary']],
+                    labels={'value': 'Cambio Anual (%)'},
                     height=450,
-                    hover_data={'Tendencia': ':.2f'}
+                    hover_data={m: ':.2f' for m in nom_metrics}
                 )
                 fig_trend.add_hline(
                     y=0,
@@ -527,7 +562,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
                     annotation_position="top right"
                 )
                 fig_trend.update_layout(
-                    title="Tendencia de Cumplimiento",
+                    title="Tendencia Anual de Cumplimiento",
                     yaxis_title="Cambio (%)",
                     plot_bgcolor='rgba(0,0,0,0)',
                     margin=dict(l=30, r=30, t=50, b=30),
@@ -552,27 +587,31 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target):
             </div>
             """, unsafe_allow_html=True)
 
-def render_lean_tab(lean_df, departamentos_filtro, lean_target):
+def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics):
     st.markdown("#### 🔄 Progreso LEAN 2.0", help="Seguimiento de métricas LEAN para optimización de procesos")
-    filtered_lean = lean_df[lean_df['Departamento'].isin(departamentos_filtro)]
+    filtered_lean = lean_df[
+        (lean_df['Departamento'].isin(departamentos_filtro)) &
+        (lean_df['Mes'].dt.date >= start_date) &
+        (lean_df['Mes'].dt.date <= end_date)
+    ]
     
     if filtered_lean.empty:
-        st.warning("⚠️ No hay datos disponibles para los departamentos seleccionados", icon="⚠️")
+        st.warning("⚠️ No hay datos disponibles para los filtros seleccionados", icon="⚠️")
         return
     
     col1, col2 = st.columns([3, 2], gap="medium")
     with col1:
         with st.spinner("Cargando gráfico de eficiencia..."):
-            fig_lean = px.bar(
-                filtered_lean,
-                x='Departamento',
-                y='Eficiencia',
-                color='Eficiencia',
-                color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
-                range_color=[50, 100],
-                labels={'Eficiencia': 'Eficiencia (%)'},
+            fig_lean = px.area(
+                filtered_lean.groupby(['Mes', 'Departamento'])[lean_metrics].mean().reset_index(),
+                x='Mes',
+                y=lean_metrics,
+                color="Departamento",
+                line_group="Departamento",
+                color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary'], COLOR_PALETTE['accent']],
+                labels={'value': 'Valor', 'variable': 'Métrica'},
                 height=450,
-                hover_data={'Eficiencia': ':.1f'}
+                hover_data={m: ':.1f' for m in lean_metrics}
             )
             fig_lean.add_hline(
                 y=lean_target,
@@ -582,33 +621,34 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target):
                 annotation_position="top right"
             )
             fig_lean.update_layout(
-                title="Eficiencia por Departamento",
+                title="Evolución de Métricas LEAN",
                 yaxis_range=[0, 100],
                 plot_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=30, r=30, t=50, b=30),
                 font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
+                hovermode="x unified"
             )
             st.plotly_chart(fig_lean, use_container_width=True)
         
         with st.spinner("Cargando análisis de desperdicio..."):
-            fig_scatter = px.scatter(
-                filtered_lean,
-                x='Reducción MURI/MURA/MUDA',
-                y='Eficiencia',
-                size='Proyectos Activos',
+            fig_scatter = px.scatter_3d(
+                filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index(),
+                x=lean_metrics[0],
+                y=lean_metrics[1] if len(lean_metrics) > 1 else 'Proyectos Activos',
+                z=lean_metrics[2] if len(lean_metrics) > 2 else '5S+2_Score',
                 color='Departamento',
+                size='Proyectos Activos',
                 hover_name='Departamento',
                 labels={
-                    'Reducción MURI/MURA/MUDA': 'Reducción de Desperdicio (%)',
-                    'Eficiencia': 'Eficiencia (%)',
-                    'Proyectos Activos': 'Proyectos Activos'
+                    lean_metrics[0]: lean_metrics[0],
+                    lean_metrics[1] if len(lean_metrics) > 1 else 'Proyectos Activos': lean_metrics[1] if len(lean_metrics) > 1 else 'Proyectos Activos',
+                    lean_metrics[2] if len(lean_metrics) > 2 else '5S+2_Score': lean_metrics[2] if len(lean_metrics) > 2 else '5S+2_Score'
                 },
-                height=450,
-                hover_data={'Proyectos Activos': ':.0f'}
+                height=450
             )
             fig_scatter.update_layout(
-                title="Eficiencia vs Reducción de Desperdicio",
+                title="Análisis Multidimensional LEAN",
                 plot_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=30, r=30, t=50, b=30),
                 font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
@@ -620,20 +660,18 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target):
         st.markdown("**📊 Comparación de Métricas**", help="Radar comparativo de métricas LEAN por departamento")
         with st.spinner("Cargando radar..."):
             scaler = MinMaxScaler()
-            lean_radar = filtered_lean.copy()
-            metrics = ['Eficiencia', 'Reducción MURI/MURA/MUDA', '5S+2_Score', 'Kaizen Colectivo']
-            lean_radar[metrics] = scaler.fit_transform(lean_radar[metrics])
+            lean_radar = filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index()
+            lean_radar[lean_metrics] = scaler.fit_transform(lean_radar[lean_metrics])
             
             fig_radar = go.Figure()
-            for dept in filtered_lean['Departamento']:
-                row = lean_radar[lean_radar['Departamento'] == dept].iloc[0]
+            for _, row in lean_radar.iterrows():
                 fig_radar.add_trace(go.Scatterpolar(
-                    r=[row[m] for m in metrics],
-                    theta=['Eficiencia', 'Reducción', '5S+2', 'Kaizen'],
+                    r=[row[m] for m in lean_metrics],
+                    theta=lean_metrics,
                     fill='toself',
-                    name=dept,
+                    name=row['Departamento'],
                     line=dict(width=2),
-                    hovertemplate=f"<b>{dept}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>"
+                    hovertemplate=f"<b>{row['Departamento']}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>"
                 ))
             fig_radar.update_layout(
                 polar=dict(
@@ -650,10 +688,9 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target):
         
         with st.expander("📌 Detalle de Proyectos", expanded=True):
             st.dataframe(
-                filtered_lean[['Departamento', 'Proyectos Activos', '5S+2_Score', 'Kaizen Colectivo']]
-                .set_index('Departamento')
+                filtered_lean.groupby('Departamento')[lean_metrics + ['Proyectos Activos']].mean().round(1)
                 .style.background_gradient(cmap='Greens')
-                .format({'Proyectos Activos': '{:.0f}', '5S+2_Score': '{:.1f}', 'Kaizen Colectivo': '{:.1f}'}),
+                .format('{:.1f}'),
                 use_container_width=True
             )
 
@@ -703,16 +740,17 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
             fig_bienestar = px.line(
                 filtered_bienestar,
                 x='Mes',
-                y=['Índice Bienestar', 'Ausentismo', 'Rotación'],
+                y=['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement'],
                 markers=True,
                 color_discrete_sequence=[
                     COLOR_PALETTE['success'],
                     COLOR_PALETTE['danger'],
-                    COLOR_PALETTE['warning']
+                    COLOR_PALETTE['warning'],
+                    COLOR_PALETTE['accent']
                 ],
                 labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
                 height=450,
-                hover_data={'Índice Bienestar': ':.1f', 'Ausentismo': ':.1f', 'Rotación': ':.1f'}
+                hover_data={'Índice Bienestar': ':.1f', 'Ausentismo': ':.1f', 'Rotación': ':.1f', 'Engagement': ':.1f'}
             )
             fig_bienestar.add_hline(
                 y=wellbeing_target,
@@ -728,13 +766,14 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
                 legend_title="Métrica",
                 margin=dict(l=30, r=30, t=50, b=30),
                 font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
-                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12),
+                hovermode="x unified"
             )
             st.plotly_chart(fig_bienestar, use_container_width=True)
     
     with wellbeing_view2:
         with st.spinner("Cargando correlaciones..."):
-            corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas']].corr()
+            corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas', 'Engagement']].corr()
             fig_corr = px.imshow(
                 corr_matrix,
                 text_auto='.2f',
@@ -788,7 +827,8 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                     ], subset=['Estado']
                 ).format({
                     'Plazo': lambda x: x.strftime('%d/%m/%Y'),
-                    '% Avance': '{:.0f}%'
+                    '% Avance': '{:.0f}%',
+                    'Costo Estimado': 'MXN {:,.0f}'
                 }).set_properties(**{'Progreso': 'width: 100px'}),
                 use_container_width=True,
                 hide_index=True,
@@ -853,6 +893,7 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                 dept = st.selectbox("Departamento", DEPARTMENTS, help="Departamento responsable del plan")
                 problema = st.text_area("Problema", max_chars=200, help="Descripción del problema identificado (máx. 200 caracteres)")
                 prioridad = st.selectbox("Prioridad", ["Alta", "Media", "Baja"], help="Nivel de prioridad del plan")
+                costo = st.number_input("Costo Estimado (MXN)", min_value=0, value=10000, step=1000, help="Costo estimado del plan")
             with col2:
                 accion = st.text_area("Acción", max_chars=200, help="Acción propuesta para resolver el problema (máx. 200 caracteres)")
                 responsable = st.text_input("Responsable", help="Nombre de la persona responsable (solo letras y espacios)")
@@ -897,7 +938,8 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                         'Plazo': plazo,
                         'Estado': 'Pendiente' if avance == 0 else 'En progreso' if avance < 100 else 'Completado',
                         'Prioridad': prioridad,
-                        '% Avance': avance
+                        '% Avance': avance,
+                        'Costo Estimado': costo
                     }])
                     st.session_state.action_plans_df = pd.concat([st.session_state.action_plans_df, new_plan], ignore_index=True)
                     st.success("✅ Plan registrado correctamente", icon="✅")
@@ -921,7 +963,6 @@ def render_export_section(nom_df, lean_df, bienestar_df):
             include_charts = st.checkbox("Incluir gráficos", value=True, help="Incluye visualizaciones en el reporte")
             if st.button("🖨️ Generar", use_container_width=True):
                 with st.spinner("Generando reporte..."):
-                    # Simulate PDF generation
                     st.success("✅ Reporte generado", icon="✅")
                     st.download_button(
                         label="📥 Descargar PDF",
@@ -945,7 +986,6 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                     st.markdown("<p class='error-message'>El campo Asunto es obligatorio</p>", unsafe_allow_html=True)
                 else:
                     with st.spinner("Enviando correo..."):
-                        # Simulate email sending
                         st.success("✅ Correo enviado", icon="✅")
                         st.download_button(
                             label="📥 Descargar Contenido",
@@ -1021,46 +1061,64 @@ def main():
             st.warning("⚠️ Por favor, configure los filtros en la barra lateral para continuar", icon="⚠️")
             return
         
-        start_date, end_date, departamentos_filtro, targets = sidebar_data
+        start_date, end_date, departamentos_filtro, targets, nom_metrics, lean_metrics = sidebar_data
         nom_target, lean_target, wellbeing_target, efficiency_target = targets
         
         render_header(start_date, end_date)
         
         st.markdown("### Indicadores Clave", help="Resumen de métricas clave para NOM-035, LEAN y bienestar")
         cols = st.columns(4, gap="medium")
+        filtered_nom = nom_df[
+            (nom_df['Departamento'].isin(departamentos_filtro)) &
+            (nom_df['Mes'].dt.date >= start_date) &
+            (nom_df['Mes'].dt.date <= end_date)
+        ]
+        filtered_lean = lean_df[
+            (lean_df['Departamento'].isin(departamentos_filtro)) &
+            (lean_df['Mes'].dt.date >= start_date) &
+            (lean_df['Mes'].dt.date <= end_date)
+        ]
+        filtered_bienestar = bienestar_df[
+            (bienestar_df['Mes'].dt.date >= start_date) &
+            (bienestar_df['Mes'].dt.date <= end_date)
+        ]
         kpis = [
             (
-                nom_df[nom_df['Departamento'].isin(departamentos_filtro)]['Evaluaciones'].mean(),
+                filtered_nom['Evaluaciones'].mean(),
                 "Cumplimiento NOM-035",
                 nom_target,
                 "📋",
-                "Porcentaje promedio de cumplimiento con NOM-035 en los departamentos seleccionados"
+                "Porcentaje promedio de cumplimiento con NOM-035",
+                filtered_nom['Evaluaciones'].mean() - filtered_nom.groupby('Departamento')['Evaluaciones'].mean().shift(1).mean() if not filtered_nom.empty else 0
             ),
             (
-                lean_df[lean_df['Departamento'].isin(departamentos_filtro)]['Eficiencia'].mean(),
+                filtered_lean['Eficiencia'].mean(),
                 "Adopción LEAN",
                 lean_target,
                 "🔄",
-                "Nivel promedio de implementación de prácticas LEAN"
+                "Nivel promedio de implementación de prácticas LEAN",
+                filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty else 0
             ),
             (
-                bienestar_df[(bienestar_df['Mes'].dt.date >= start_date) & (bienestar_df['Mes'].dt.date <= end_date)]['Índice Bienestar'].mean(),
+                filtered_bienestar['Índice Bienestar'].mean(),
                 "Índice Bienestar",
                 wellbeing_target,
                 "😊",
-                "Índice promedio de bienestar organizacional en el período seleccionado"
+                "Índice promedio de bienestar organizacional",
+                filtered_bienestar['Índice Bienestar'].mean() - filtered_bienestar['Índice Bienestar'].shift(1).mean() if not filtered_bienestar.empty else 0
             ),
             (
-                lean_df[lean_df['Departamento'].isin(departamentos_filtro)]['Eficiencia'].mean(),
+                filtered_lean['Eficiencia'].mean(),
                 "Eficiencia Operativa",
                 efficiency_target,
                 "⚙️",
-                "Eficiencia promedio de procesos operativos"
+                "Eficiencia promedio de procesos operativos",
+                filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty else 0
             )
         ]
-        for i, (value, title, target, icon, help_text) in enumerate(kpis):
+        for i, (value, title, target, icon, help_text, delta) in enumerate(kpis):
             with cols[i]:
-                kpi_card(value, title, target, icon, help_text)
+                kpi_card(value, title, target, icon, help_text, delta)
         
         tab1, tab2, tab3, tab4 = st.tabs([
             "📋 NOM-035",
@@ -1070,9 +1128,9 @@ def main():
         ])
         
         with tab1:
-            render_nom_tab(nom_df, departamentos_filtro, nom_target)
+            render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics)
         with tab2:
-            render_lean_tab(lean_df, departamentos_filtro, lean_target)
+            render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics)
         with tab3:
             render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target)
         with tab4:
@@ -1083,7 +1141,7 @@ def main():
         st.markdown("""
         <hr style="border-color: var(--border);">
         <div style="text-align: center; color: var(--muted); font-size: 0.875rem; padding: 1.5rem 0;">
-            Sistema Integral NOM-035 & LEAN 2.0 • Versión 3.1.0<br>
+            Sistema Integral NOM-035 & LEAN 2.0 • Versión 3.2.0<br>
             © 2025 Departamento de RH
         </div>
         """, unsafe_allow_html=True)
