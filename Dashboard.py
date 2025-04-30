@@ -171,7 +171,7 @@ with st.sidebar:
     st.markdown(f"""
     <div style="display: flex; align-items: center; margin-bottom: 20px;">
         <h1 style="color: white; margin-bottom: 0;">📊</h1>
-        <h2 style="color: white; margin-left: 10px; margin-bottom: 0;">NOM-035 & LEAN</h2>
+        <h2 style="color: white; margin-left: 10px; margin-bottom: 0;">NOM-035 & LEAN 2.0</h2>
     </div>
     """, unsafe_allow_html=True)
     
