@@ -524,14 +524,14 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                     # Add target line to each subplot
                     for annotation in fig.layout.annotations:
                         if annotation.text in nom_metrics:
-                    fig.add_hline(
-                        y=nom_target,
-                        line_dash="dash",
-                        line_color=COLOR_PALETTE['warning'],
-                        annotation_text="Meta",
-                        annotation_position="top right",
-                        row=1,
-                        col=int(annotation.text.split("=")[-1])  # Properly closed parenthesis
+                        fig.add_hline(
+                            y=nom_target,
+                            line_dash="dash",
+                            line_color=COLOR_PALETTE['warning'],
+                            annotation_text="Meta",
+                            annotation_position="top right",
+                            row=1,
+                            col=int(annotation.text.split("=")[-1])  # Properly closed parenthesis
                     
                     fig.update_layout(
                         plot_bgcolor='rgba(0,0,0,0)',
