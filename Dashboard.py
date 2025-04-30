@@ -514,15 +514,15 @@ with tab2:
             # Normalize data for radar chart
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
-            lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']] = scaler.fit_transform(
+            lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'Kaizen']] = scaler.fit_transform(
                 lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S_Score', 'SMED']]
             )
             
             for dept in filtered_lean['Departamento']:
                 row = lean_radar[lean_radar['Departamento'] == dept].iloc[0]
                 fig_radar.add_trace(go.Scatterpolar(
-                    r=[row['Eficiencia'], row['Reducción Desperdicio'], row['5S_Score'], row['SMED']],
-                    theta=['Eficiencia', 'Reducción', '5S', 'SMED'],
+                    r=[row['Eficiencia'], row['Reducción Desperdicio'], row['5S_Score'], row['Kaizen']],
+                    theta=['Eficiencia', 'Reducción', '5S', 'Kaizen'],
                     fill='toself',
                     name=dept,
                     line=dict(width=2)
