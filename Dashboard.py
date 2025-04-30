@@ -554,38 +554,40 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                 except Exception as e:
                     st.warning(f"Error al renderizar gráfico: {e}", icon="⚠️")
         
-                with col2:
-                    st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
-                    
-                    # Get the summary data
-                    summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
-                    
-                    # Reset index to make Departamento a column
-                    summary = summary.reset_index()
-                    
-                    # Identify numeric columns (excluding 'Departamento')
-                    numeric_cols = [col for col in summary.columns if col != 'Departamento' and pd.api.types.is_numeric_dtype(summary[col])]
-                    
-                    # Create a style dictionary - format numeric columns with .1f, leave others as-is
-                    format_dict = {col: '{:.1f}' for col in numeric_cols}
-                    
-                    # Apply the styling
-                    styled_summary = summary.style.format(format_dict)
-                    
-                    # Apply background gradient only to numeric columns that are in nom_metrics
-                    gradient_cols = [col for col in numeric_cols if col in nom_metrics]
-                    if gradient_cols:
-                        styled_summary = styled_summary.background_gradient(
-                            cmap='RdYlGn',
-                            subset=gradient_cols
+                    with col2:
+                        st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
+                        
+                        # Get the summary data
+                        summary = filtered_nom.groupby('Departamento')[nom_metrics + ['Incidentes']].mean().round(1)
+                        
+                        # Reset index to make Departamento a column
+                        summary = summary.reset_index()
+                        
+                        # Create format dictionary for numeric columns
+                        format_dict = {}
+                        for col in summary.columns:
+                            if col != 'Departamento' and pd.api.types.is_numeric_dtype(summary[col]):
+                                format_dict[col] = '{:.1f}'
+                        
+                        # Apply the styling
+                        styled_summary = summary.style.format(format_dict)
+                        
+                        # Apply background gradient only to numeric columns that are in nom_metrics
+                        gradient_cols = [col for col in summary.columns 
+                                        if col in nom_metrics and pd.api.types.is_numeric_dtype(summary[col])]
+                        
+                        if gradient_cols:
+                            styled_summary = styled_summary.background_gradient(
+                                cmap='RdYlGn',
+                                subset=gradient_cols
+                            )
+                        
+                        # Display the styled DataFrame
+                        st.dataframe(
+                            styled_summary,
+                            use_container_width=True,
+                            height=450
                         )
-                    
-                    # Display the styled DataFrame
-                    st.dataframe(
-                        styled_summary,
-                        use_container_width=True,
-                        height=450
-                    )
     
     with nom_view2:
         with st.spinner("Cargando mapa de riesgo..."):
