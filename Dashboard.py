@@ -546,9 +546,7 @@ with tab1:
     # Filter data
  
     
-    # Validate filtered data
-    if filtered_nom.empty:
-        st.warning("No hay datos disponibles para los departamentos seleccionados")
+   
     else:
         # Create tabs for different views
         nom_view1, nom_view2, nom_view3 = st.tabs(["Métricas Principales", "Mapa de Riesgo", "Análisis de Tendencia"])
