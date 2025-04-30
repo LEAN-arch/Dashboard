@@ -674,48 +674,52 @@ with tab1:
                 st.plotly_chart(fig_risk, use_container_width=True)
         
         with nom_view2:
-            # Risk heatmap with better visualization
-            st.markdown("**🔍 Mapa de Riesgo Psicosocial**")
-            
-            # Prepare data for heatmap
-            heatmap_data = filtered_nom.set_index('Departamento')[['Evaluaciones', 'Capacitaciones', 'Incidentes']]
-            heatmap_data.columns = ['Evaluaciones (%)', 'Capacitaciones (%)', 'Incidentes (n)']
-            
-            # Normalize data for better color scaling
-            scaler = MinMaxScaler()
-            heatmap_values = scaler.fit_transform(heatmap_data)
-            
-            fig_heat = go.Figure(data=go.Heatmap(
-                z=heatmap_values,
-                x=heatmap_data.columns,
-                y=heatmap_data.index,
-                text=heatmap_data.values,
-                texttemplate="%{text}",
-                colorscale='RdYlGn',
-                reversescale=True,
-                hoverongaps=False,
-                colorbar=dict(
-                    title="Riesgo",
-                    titleside="right",
-                    tickvals=[0, 0.5, 1],
-                    ticktext=["Alto", "Medio", "Bajo"]
-                )
-            ))
-            
-            fig_heat.update_layout(
-                height=500,
-                plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=50, r=50, t=50, b=50),
-                xaxis_title="",
-                yaxis_title="Departamento",
-                hoverlabel=dict(
-                    bgcolor="white",
-                    font_size=12,
-                    font_family="Inter"
-                )
-            )
-            
-            st.plotly_chart(fig_heat, use_container_width=True)
+# Risk heatmap with better visualization
+st.markdown("**🔍 Mapa de Riesgo Psicosocial**")
+
+# Prepare data for heatmap
+heatmap_data = filtered_nom.set_index('Departamento')[['Evaluaciones', 'Capacitaciones', 'Incidentes']]
+heatmap_data.columns = ['Evaluaciones (%)', 'Capacitaciones (%)', 'Incidentes (n)']
+
+# Normalize data for better color scaling
+scaler = MinMaxScaler()
+heatmap_values = scaler.fit_transform(heatmap_data)
+
+fig_heat = go.Figure(data=go.Heatmap(
+    z=heatmap_values,
+    x=heatmap_data.columns,
+    y=heatmap_data.index,
+    text=heatmap_data.values,
+    texttemplate="%{text}",
+    colorscale='RdYlGn',
+    reversescale=True,
+    hoverongaps=False,
+    # Simplified colorbar configuration
+    colorbar=dict(
+        title="Riesgo",
+        title_side="right",  # Changed from titleside to title_side for consistency
+        tickmode="array",
+        tickvals=[0, 0.5, 1],  # Matches normalized range (0 to 1)
+        ticktext=["Alto", "Medio", "Bajo"],
+        len=0.8,  # Slightly shorter colorbar for better aesthetics
+        thickness=15  # Thinner colorbar for clarity
+    )
+))
+
+fig_heat.update_layout(
+    height=500,
+    plot_bgcolor='rgba(0,0,0,0)',
+    margin=dict(l=50, r=50, t=50, b=50),
+    xaxis_title="",
+    yaxis_title="Departamento",
+    hoverlabel=dict(
+        bgcolor="white",
+        font_size=12,
+        font_family="Inter"
+    )
+)
+
+st.plotly_chart(fig_heat, use_container_width=True)
             
             # Risk interpretation guide
             st.markdown("""
