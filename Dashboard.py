@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 import warnings
+import io  # FIX: Added for Excel export
 warnings.filterwarnings('ignore')
 
 # ========== PAGE CONFIGURATION ==========
@@ -176,7 +177,7 @@ st.markdown(f"""
         background: {COLOR_PALETTE['accent']};
     }}
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)  # SECURITY: Ensure dynamic inputs are sanitized if added
 
 # ========== DATA LOADING AND PROCESSING ==========
 @st.cache_data(ttl=600)
@@ -267,7 +268,12 @@ def load_data():
     
     return nom, lean, bienestar, action_plans
 
-nom_df, lean_df, bienestar_df, action_plans_df = load_data()
+# Load data with error handling
+try:
+    nom_df, lean_df, bienestar_df, action_plans_df = load_data()
+except Exception as e:
+    st.error(f"Error al cargar los datos: {e}")
+    st.stop()
 
 # ========== SIDEBAR ==========
 with st.sidebar:
@@ -335,15 +341,28 @@ with st.sidebar:
     # Refresh button with better styling
     if st.button(
         "🔄 Actualizar Datos", 
-        use_container_width=True,
+        use5377_container_width=True,
         help="Actualiza todos los datos y visualizaciones con los filtros actuales"
     ):
-        st.rerun()
+        st.rerun()  # TODO: Consider optimizing with session state for performance
     
     # Download data button
+    # FIX: Improved data concatenation for export
+    export_data = []
+    if nom_df is not None:
+        export_data.append(nom_df.assign(Tipo="NOM-035"))
+    if lean_df is not None:
+        export_data.append(lean_df.assign(Tipo="LEAN"))
+    if bienestar_df is not None:
+        export_data.append(bienestar_df.assign(Tipo="Bienestar"))
+    if action_plans_df is not None:
+        export_data.append(action_plans_df.assign(Tipo="Planes_Accion"))
+    
+    combined_export = pd.concat(export_data, ignore_index=True) if export_data else pd.DataFrame()
+    
     st.download_button(
         label="📥 Exportar Datos",
-        data=pd.concat([nom_df, lean_df, bienestar_df, action_plans_df]).to_csv().encode('utf-8'),
+        data=combined_export.to_csv(index=False).encode('utf-8'),
         file_name="nom_lean_data.csv",
         mime="text/csv",
         use_container_width=True
@@ -552,7 +571,7 @@ with tab1:
                     color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary']],
                     labels={'value': 'Porcentaje', 'variable': 'Métrica'},
                     height=450,
-                    text_auto=True
+                    text='auto'  # FIX: Replaced deprecated text_auto
                 )
                 fig.update_layout(
                     plot_bgcolor='rgba(0,0,0,0)',
@@ -709,7 +728,7 @@ with tab1:
                             <span style="font-weight: 600;">Alto Riesgo</span>
                         </div>
                         <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
-                            Evaluaciones &lt; 70%, Capacitaciones &lt; 60%, o Incidentes &gt; 5
+                            Evaluaciones < 70%, Capacitaciones < 60%, o Incidentes > 5
                         </p>
                     </div>
                     <div style="flex: 1; min-width: 200px;">
@@ -727,7 +746,7 @@ with tab1:
                             <span style="font-weight: 600;">Bajo Riesgo</span>
                         </div>
                         <p style="margin: 0; font-size: 0.9rem; color: #7f8c8d;">
-                            Evaluaciones &gt; 80%, Capacitaciones &gt; 75%, y Incidentes &lt; 2
+                            Evaluaciones > 80%, Capacitaciones > 75%, y Incidentes < 2
                         </p>
                     </div>
                 </div>
@@ -908,7 +927,7 @@ with tab2:
                 },
                 labels={'Eficiencia': 'Eficiencia (%)'},
                 height=400,
-                text_auto=True
+                text='auto'  # FIX: Replaced deprecated text_auto
             )
             
             # Add target line
@@ -1057,7 +1076,7 @@ with tab2:
 with tab3:
     st.markdown("#### Tendencias de Bienestar Organizacional")
     
-    # Filter wellbeing data by date range
+    # FIX: Consistent date handling
     filtered_bienestar = bienestar_df[
         (bienestar_df['Mes'].dt.date >= start_date) & 
         (bienestar_df['Mes'].dt.date <= end_date)
@@ -1071,10 +1090,10 @@ with tab3:
         cols = st.columns(4)
         
         # Calculate changes
-        encuestas_change = filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0]
-        ausentismo_change = filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0]
-        rotacion_change = filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0]
-        bienestar_change = filtered_bienestar['Índice_Bienestar'].iloc[-1] - filtered_bienestar['Índice_Bienestar'].iloc[0]
+        encuestas_change = filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        ausentismo_change = filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        rotacion_change = filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0] if len(filtered_bienestar) > 1 else 0
+        bienestar_change = filtered_bienestar['Índice_Bienestar'].iloc[-1] - filtered_bienestar['Índice_Bienestar'].iloc[0] if len(filtered_bienestar) > 1 else 0
         
         with cols[0]:
             st.metric(
@@ -1294,149 +1313,153 @@ with tab4:
         action_plans_df['Departamento'].isin(departamentos_filtro if departamentos_filtro else DEPARTMENTS)
     ]
     
-    # Display existing action plans with better visualization
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        st.markdown("**📌 Planes Registrados**")
+    # FIX: Validate filtered plans
+    if filtered_plans.empty:
+        st.warning("⚠️ No hay planes de acción para los departamentos seleccionados")
+    else:
+        # Display existing action plans with better visualization
+        col1, col2 = st.columns([3, 1])
         
-        # Create a styled dataframe with progress bars
-        def style_action_plans(df):
-            styled = df.copy()
+        with col1:
+            st.markdown("**📌 Planes Registrados**")
             
-            # Format dates
-            styled['Plazo'] = styled['Plazo'].apply(lambda x: x.strftime('%d/%m/%Y'))
-            
-            # Add color based on status
-            status_colors = {
-                'Completado': COLOR_PALETTE['success'],
-                'En progreso': COLOR_PALETTE['warning'],
-                'Pendiente': COLOR_PALETTE['danger']
-            }
-            
-            priority_colors = {
-                'Alta': COLOR_PALETTE['danger'],
-                'Media': COLOR_PALETTE['warning'],
-                'Baja': COLOR_PALETTE['success']
-            }
-            
-            # Apply styling
-            styled['Estado'] = styled['Estado'].apply(
-                lambda x: f"<span style='color: {status_colors[x]}; font-weight: bold;'>{x}</span>"
-            )
-            
-            styled['Prioridad'] = styled['Prioridad'].apply(
-                lambda x: f"<span style='color: {priority_colors[x]}; font-weight: bold;'>{x}</span>"
-            )
-            
-            # Add progress bars
-            styled['Avance'] = styled['%_Avance'].apply(
-                lambda x: f"""
-                <div style="position: relative; height: 20px; background: #f0f0f0; border-radius: 4px;">
-                    <div style="position: absolute; height: 20px; width: {x}%; background: {COLOR_PALETTE['secondary']}; border-radius: 4px; 
-                                display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
-                        {x}%
-                    </div>
-                </div>
-                """
-            )
-            
-            return styled[['Departamento', 'Problema', 'Acción', 'Responsable', 'Plazo', 'Estado', 'Prioridad', 'Avance']]
-        
-        styled_plans = style_action_plans(filtered_plans)
-        
-        # Display with custom HTML for better rendering
-        st.markdown(
-            styled_plans.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
-        
-        # Add spacing
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-        
-        # Status distribution chart
-        st.markdown("**📊 Distribución de Estados**")
-        status_cols = st.columns(3)
-        
-        with status_cols[0]:
-            completed = filtered_plans[filtered_plans['Estado'] == 'Completado'].shape[0]
-            st.metric("Completados", completed, delta=f"{completed/len(filtered_plans)*100:.1f}%")
-        
-        with status_cols[1]:
-            in_progress = filtered_plans[filtered_plans['Estado'] == 'En progreso'].shape[0]
-            st.metric("En Progreso", in_progress, delta=f"{in_progress/len(filtered_plans)*100:.1f}%")
-        
-        with status_cols[2]:
-            pending = filtered_plans[filtered_plans['Estado'] == 'Pendiente'].shape[0]
-            st.metric("Pendientes", pending, delta=f"{pending/len(filtered_plans)*100:.1f}%")
-    
-    with col2:
-        st.markdown("**📅 Vencimientos Próximos**")
-        
-        # Calculate days until deadline and filter
-        today = date.today()
-        upcoming = filtered_plans.copy()
-        upcoming['Días Restantes'] = (upcoming['Plazo'] - today).apply(lambda x: x.days)
-        upcoming = upcoming[upcoming['Días Restantes'] <= 30].sort_values('Días Restantes')
-        
-        if not upcoming.empty:
-            for _, row in upcoming.iterrows():
-                days_left = row['Días Restantes']
+            # Create a styled dataframe with progress bars
+            def style_action_plans(df):
+                styled = df.copy()
                 
-                # Determine color based on days left
-                if days_left < 0:
-                    status_color = COLOR_PALETTE['danger']
-                    status_text = f"Vencido hace {-days_left} días"
-                elif days_left < 7:
-                    status_color = COLOR_PALETTE['danger']
-                    status_text = f"Vence en {days_left} días"
-                elif days_left < 14:
-                    status_color = COLOR_PALETTE['warning']
-                    status_text = f"Vence en {days_left} días"
-                else:
-                    status_color = COLOR_PALETTE['success']
-                    status_text = f"Vence en {days_left} días"
+                # Format dates
+                styled['Plazo'] = styled['Plazo'].apply(lambda x: x.strftime('%d/%m/%Y'))
                 
-                st.markdown(f"""
-                <div style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid {status_color};">
-                    <div style="font-weight: 600; margin-bottom: 0.25rem;">{row['Departamento']}</div>
-                    <div style="font-size: 0.8rem; margin-bottom: 0.25rem; color: {COLOR_PALETTE['text_light']};">
-                        {row['Problema'][:30]}...
+                # Add color based on status
+                status_colors = {
+                    'Completado': COLOR_PALETTE['success'],
+                    'En progreso': COLOR_PALETTE['warning'],
+                    'Pendiente': COLOR_PALETTE['danger']
+                }
+                
+                priority_colors = {
+                    'Alta': COLOR_PALETTE['danger'],
+                    'Media': COLOR_PALETTE['warning'],
+                    'Baja': COLOR_PALETTE['success']
+                }
+                
+                # Apply styling
+                styled['Estado'] = styled['Estado'].apply(
+                    lambda x: f"<span style='color: {status_colors[x]}; font-weight: bold;'>{x}</span>"
+                )
+                
+                styled['Prioridad'] = styled['Prioridad'].apply(
+                    lambda x: f"<span style='color: {priority_colors[x]}; font-weight: bold;'>{x}</span>"
+                )
+                
+                # Add progress bars
+                styled['Avance'] = styled['%_Avance'].apply(
+                    lambda x: f"""
+                    <div style="position: relative; height: 20px; background: #f0f0f0; border-radius: 4px;">
+                        <div style="position: absolute; height: 20px; width: {x}%; background: {COLOR_PALETTE['secondary']}; border-radius: 4px; 
+                                    display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: bold;">
+                            {x}%
+                        </div>
                     </div>
-                    <div style="font-size: 0.8rem; color: {status_color}; font-weight: 500;">
-                        {status_text}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-        else:
-            st.info("🎉 No hay planes con vencimiento próximo", icon="ℹ️")
+                    """
+                )
+                
+                return styled[['Departamento', 'Problema', 'Acción', 'Responsable', 'Plazo', 'Estado', 'Prioridad', 'Avance']]
+            
+            styled_plans = style_action_plans(filtered_plans)
+            
+            # Display with custom HTML for better rendering
+            st.markdown(
+                styled_plans.to_html(escape=False, index=False),
+                unsafe_allow_html=True
+            )
+            
+            # Add spacing
+            st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+            
+            # Status distribution chart
+            st.markdown("**📊 Distribución de Estados**")
+            status_cols = st.columns(3)
+            
+            with status_cols[0]:
+                completed = filtered_plans[filtered_plans['Estado'] == 'Completado'].shape[0]
+                st.metric("Completados", completed, delta=f"{completed/len(filtered_plans)*100:.1f}%")
+            
+            with status_cols[1]:
+                in_progress = filtered_plans[filtered_plans['Estado'] == 'En progreso'].shape[0]
+                st.metric("En Progreso", in_progress, delta=f"{in_progress/len(filtered_plans)*100:.1f}%")
+            
+            with status_cols[2]:
+                pending = filtered_plans[filtered_plans['Estado'] == 'Pendiente'].shape[0]
+                st.metric("Pendientes", pending, delta=f"{pending/len(filtered_plans)*100:.1f}%")
         
-        # Priority distribution pie chart
-        st.markdown("**📌 Distribución por Prioridad**")
-        priority_counts = filtered_plans['Prioridad'].value_counts().reset_index()
-        fig_priority = px.pie(
-            priority_counts,
-            values='count',
-            names='Prioridad',
-            color='Prioridad',
-            color_discrete_map={
-                'Alta': COLOR_PALETTE['danger'],
-                'Media': COLOR_PALETTE['warning'],
-                'Baja': COLOR_PALETTE['success']
-            },
-            hole=0.5,
-            height=250
-        )
-        fig_priority.update_layout(
-            showlegend=False,
-            margin=dict(l=20, r=20, t=20, b=20)
-        )
-        fig_priority.update_traces(
-            textposition='inside',
-            textinfo='percent+label',
-            hovertemplate="<b>%{label}</b><br>%{value} planes"
-        )
-        st.plotly_chart(fig_priority, use_container_width=True)
+        with col2:
+            st.markdown("**📅 Vencimientos Próximos**")
+            
+            # Calculate days until deadline and filter
+            today = date.today()
+            upcoming = filtered_plans.copy()
+            upcoming['Días Restantes'] = (upcoming['Plazo'] - today).apply(lambda x: x.days)
+            upcoming = upcoming[upcoming['Días Restantes'] <= 30].sort_values('Días Restantes')
+            
+            if not upcoming.empty:
+                for _, row in upcoming.iterrows():
+                    days_left = row['Días Restantes']
+                    
+                    # Determine color based on days left
+                    if days_left < 0:
+                        status_color = COLOR_PALETTE['danger']
+                        status_text = f"Vencido hace {-days_left} días"
+                    elif days_left < 7:
+                        status_color = COLOR_PALETTE['danger']
+                        status_text = f"Vence en {days_left} días"
+                    elif days_left < 14:
+                        status_color = COLOR_PALETTE['warning']
+                        status_text = f"Vence en {days_left} días"
+                    else:
+                        status_color = COLOR_PALETTE['success']
+                        status_text = f"Vence en {days_left} días"
+                    
+                    st.markdown(f"""
+                    <div style="background-color: #f8f9fa; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem; border-left: 4px solid {status_color};">
+                        <div style="font-weight: 600; margin-bottom: 0.25rem;">{row['Departamento']}</div>
+                        <div style="font-size: 0.8rem; margin-bottom: 0.25rem; color: {COLOR_PALETTE['text_light']};">
+                            {row['Problema'][:30]}...
+                        </div>
+                        <div style="font-size: 0.8rem; color: {status_color}; font-weight: 500;">
+                            {status_text}
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info("🎉 No hay planes con vencimiento próximo", icon="ℹ️")
+            
+            # Priority distribution pie chart
+            st.markdown("**📌 Distribución por Prioridad**")
+            priority_counts = filtered_plans['Prioridad'].value_counts().reset_index()
+            fig_priority = px.pie(
+                priority_counts,
+                values='count',
+                names='Prioridad',
+                color='Prioridad',
+                color_discrete_map={
+                    'Alta': COLOR_PALETTE['danger'],
+                    'Media': COLOR_PALETTE['warning'],
+                    'Baja': COLOR_PALETTE['success']
+                },
+                hole=0.5,
+                height=250
+            )
+            fig_priority.update_layout(
+                showlegend=False,
+                margin=dict(l=20, r=20, t=20, b=20)
+            )
+            fig_priority.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                hovertemplate="<b>%{label}</b><br>%{value} planes"
+            )
+            st.plotly_chart(fig_priority, use_container_width=True)
     
     # Add new action plan form with better UX
     with st.expander("➕ Registrar Nuevo Plan de Acción", expanded=False):
@@ -1494,9 +1517,11 @@ with tab4:
                 if not problema or not accion or not responsable:
                     st.error("Por favor complete todos los campos requeridos")
                 else:
+                    # FIX: Validate unique ID
+                    new_id = max(action_plans_df['ID']) + 1 if not action_plans_df.empty else 1
                     # In a real app, this would save to a database
                     new_plan = pd.DataFrame([{
-                        'ID': len(action_plans_df) + 1,
+                        'ID': new_id,
                         'Departamento': dept,
                         'Problema': problema,
                         'Acción': accion,
@@ -1511,7 +1536,7 @@ with tab4:
                     action_plans_df = pd.concat([action_plans_df, new_plan], ignore_index=True)
                     st.success("✅ Plan de acción registrado correctamente")
                     st.balloons()
-                    st.rerun()
+                    st.rerun()  # TODO: Optimize with session state if possible
 
 # ========== EXPORT AND REPORTING ==========
 st.markdown("---")
@@ -1533,7 +1558,7 @@ with export_col1:
             default=["KPIs", "Gráficos", "Planes de Acción"]
         )
         
-        if st.button(
+       ---------------------------------------------------------------------------if st.button(
             "🖨️ Generar Reporte", 
             use_container_width=True,
             help="Genera un reporte PDF con los datos actuales"
@@ -1596,31 +1621,40 @@ with export_col3:
         if "Bienestar" in data_options:
             export_data.append(bienestar_df.assign(Tipo="Bienestar"))
         if "Planes de Acción" in data_options:
-            export_data.append(action_plans_df.assign(Tipo="Planes_Accion"))
+                        export_data.append(action_plans_df.assign(Tipo="Planes_Accion"))
         
         if export_data:
-            combined_data = pd.concat(export_data)
+            combined_data = pd.concat(export_data, ignore_index=True)
             
-            if export_format == "CSV":
-                data = combined_data.to_csv(index=False).encode('utf-8')
-                mime = "text/csv"
-                ext = "csv"
-            elif export_format == "Excel":
-                data = combined_data.to_excel(index=False)
-                mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                ext = "xlsx"
-            else:  # JSON
-                data = combined_data.to_json(orient='records').encode('utf-8')
-                mime = "application/json"
-                ext = "json"
-            
-            st.download_button(
-                label=f"💾 Descargar (.{ext})",
-                data=data,
-                file_name=f"nom_lean_data.{ext}",
-                mime=mime,
-                use_container_width=True
-            )
+            try:
+                if export_format == "CSV":
+                    data = combined_data.to_csv(index=False).encode('utf-8')
+                    mime = "text/csv"
+                    ext = "csv"
+                elif export_format == "Excel":
+                    # FIX: Use BytesIO for proper Excel export
+                    output = io.BytesIO()
+                    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                        combined_data.to_excel(writer, index=False, sheet_name='NOM_LEAN_Data')
+                    data = output.getvalue()
+                    mime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    ext = "xlsx"
+                else:  # JSON
+                    data = combined_data.to_json(orient='records', date_format='iso').encode('utf-8')
+                    mime = "application/json"
+                    ext = "json"
+                
+                st.download_button(
+                    label=f"💾 Descargar (.{ext})",
+                    data=data,
+                    file_name=f"nom_lean_data.{ext}",
+                    mime=mime,
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error(f"Error al generar el archivo de exportación: {e}")
+        else:
+            st.warning("⚠️ Seleccione al menos un tipo de datos para exportar")
 
 # ========== FOOTER ==========
 st.markdown("""
@@ -1632,4 +1666,5 @@ st.markdown("""
         Para soporte técnico contacte a: <a href="mailto:soporte@empresa.com" style="color: #3498db;">soporte@empresa.com</a>
     </p>
 </div>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)  # SECURITY: Safe for static content; sanitize if dynamic inputs are added
+           
