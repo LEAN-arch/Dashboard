@@ -267,42 +267,6 @@ with cols[2]:
 with cols[3]: 
     kpi_card(round(operational_efficiency), "Eficiencia Operativa", efficiency_target, "⚙️", "Eficiencia general de los procesos operativos")
 
-# [Rest of your tabs and visualizations remain the same...]
-
-# Display KPIs in columns
-cols = st.columns(4)
-with cols[0]: 
-    kpi_card(
-        round(nom_compliance), 
-        "Cumplimiento NOM-035", 
-        nom_target, 
-        "📋",
-        "Porcentaje de cumplimiento con la norma NOM-035"
-    )
-with cols[1]: 
-    kpi_card(
-        round(lean_adoption), 
-        "Adopción LEAN", 
-        lean_target, 
-        "🔄",
-        "Nivel de implementación de metodologías LEAN"
-    )
-with cols[2]: 
-    kpi_card(
-        round(wellbeing_index), 
-        "Índice Bienestar", 
-        wellbeing_target, 
-        "😊",
-        "Indicador general de bienestar organizacional"
-    )
-with cols[3]: 
-    kpi_card(
-        round(operational_efficiency), 
-        "Eficiencia Operativa", 
-        efficiency_target, 
-        "⚙️",
-        "Eficiencia general de los procesos operativos"
-    )
 
 # ========== MAIN CONTENT TABS ==========
 tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN 2.0", "😊 Bienestar", "📝 Planes de Acción"])
