@@ -541,7 +541,7 @@ with tab2:
             # Projects summary
             with st.expander("📌 Detalle de Proyectos", expanded=True):
                 st.dataframe(
-                    filtered_lean[['Departamento', 'Proyectos Activos', '5S_Score', 'SMED']]
+                    filtered_lean[['Departamento', 'Proyectos Activos', '5S_Score', 'Kaizen']]
                     .set_index('Departamento')
                     .style.background_gradient(cmap='Greens'),
                     use_container_width=True
