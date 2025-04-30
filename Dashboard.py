@@ -20,30 +20,48 @@ st.set_page_config(
 # ========== CONSTANTS AND CONFIGURATION ==========
 DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
 
-# Professional color scheme
-COLOR_PALETTE = {
-    'primary': '#2c3e50',       # Dark blue
-    'secondary': '#3498db',     # Bright blue
-    'accent': '#2980b9',        # Medium blue
-    'success': '#27ae60',       # Green
-    'warning': '#f39c12',       # Orange
-    'danger': '#e74c3c',        # Red
-    'light': '#ecf0f1',         # Light gray
-    'dark': '#2c3e50',          # Dark blue
-    'background': '#f9f9f9',    # Off-white
-    'text': '#333333'           # Dark gray
-}
+class DesignSystem:
+    # Color palette
+    COLORS = {
+        'primary': '#2563eb',    # More vibrant blue
+        'secondary': '#4f46e5',  # Purple-blue
+        'accent': '#7c3aed',     # Vibrant purple
+        'success': '#10b981',    # Emerald green
+        'warning': '#f59e0b',    # Amber
+        'danger': '#ef4444',     # Red
+        'light': '#f3f4f6',      # Light gray
+        'dark': '#1f2937',       # Dark gray
+        'background': '#ffffff', # Pure white
+        'text': '#374151'        # Dark gray
+    }
+    
+    # Typography
+    FONT = "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    
+    # Spacing
+    SPACING = {
+        'xs': '0.25rem',
+        'sm': '0.5rem',
+        'md': '1rem',
+        'lg': '1.5rem',
+        'xl': '2rem'
+    }
+    
+    # Shadows
+    SHADOWS = {
+        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+    }
+    
+    # Border radius
+    RADIUS = {
+        'sm': '0.375rem',
+        'md': '0.5rem',
+        'lg': '0.75rem',
+        'full': '9999px'
+    }
 
-# Font settings
-FONT_CSS = """
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
-html, body, [class*="css"] {
-    font-family: 'Open Sans', sans-serif;
-}
-</style>
-"""
-st.markdown(FONT_CSS, unsafe_allow_html=True)
 
 # Custom CSS for professional styling
 st.markdown(f"""
