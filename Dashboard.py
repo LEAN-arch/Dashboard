@@ -218,7 +218,8 @@ def load_data():
                     'Satisfacción Laboral': np.clip(base_evals[i] + np.random.normal(0, 4), 65, 95).round(1)
                 })
         nom_df = pd.DataFrame(nom_data)
-        logger.info(f"NOM-035 DataFrame shape: {nom_df.shape}")
+        nom_df['Mes'] = pd.to_datetime(nom_df['Mes'])  # Ensure datetime64
+        logger.info(f"NOM-035 DataFrame shape: {nom_df.shape}, Mes dtype: {nom_df['Mes'].dtype}")
 
         # LEAN Data (2022-2025, monthly)
         lean_data = []
@@ -236,7 +237,8 @@ def load_data():
                     'Tiempo Ciclo': np.clip(100 - base_eff[i] + np.random.normal(0, 5), 10, 50).round(1)
                 })
         lean_df = pd.DataFrame(lean_data)
-        logger.info(f"LEAN DataFrame shape: {lean_df.shape}")
+        lean_df['Mes'] = pd.to_datetime(lean_df['Mes'])  # Ensure datetime64
+        logger.info(f"LEAN DataFrame shape: {lean_df.shape}, Mes dtype: {lean_df['Mes'].dtype}")
 
         # Bienestar Data (2022-2025, monthly)
         base_well = np.linspace(70, 85, len(dates))
@@ -248,7 +250,8 @@ def load_data():
             'Encuestas': np.clip(np.round(80 + np.random.normal(0, 5, len(dates))), 75, 100),
             'Engagement': np.clip(base_well + np.random.normal(0, 3, len(dates)), 60, 90).round(1)
         })
-        logger.info(f"Bienestar DataFrame shape: {bienestar_df.shape}")
+        bienestar_df['Mes'] = pd.to_datetime(bienestar_df['Mes'])  # Ensure datetime64
+        logger.info(f"Bienestar DataFrame shape: {bienestar_df.shape}, Mes dtype: {bienestar_df['Mes'].dtype}")
 
         # Action Plans
         action_plans = pd.DataFrame({
@@ -290,7 +293,8 @@ def load_data():
             '% Avance': np.random.choice([0, 25, 50, 75, 100], 20),
             'Costo Estimado': np.random.randint(5000, 50000, 20)
         })
-        logger.info(f"Action Plans DataFrame shape: {action_plans.shape}")
+        action_plans['Plazo'] = pd.to_datetime(action_plans['Plazo'])  # Ensure datetime64
+        logger.info(f"Action Plans DataFrame shape: {action_plans.shape}, Plazo dtype: {action_plans['Plazo'].dtype}")
 
         return nom_df, lean_df, bienestar_df, action_plans
     except Exception as e:
@@ -320,7 +324,7 @@ if any(df is None for df in (nom_df, lean_df, bienestar_df)):
 
 # ========== HELPER FUNCTIONS ==========
 def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column='Mes'):
-    """Filter DataFrame by departments and date range."""
+    """Filter DataFrame by departments and date range, preserving datetime type."""
     try:
         logger.info(f"Filtering DataFrame with date_column={date_column}")
         if df.empty or date_column not in df.columns:
@@ -328,12 +332,13 @@ def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column
             return pd.DataFrame(columns=df.columns)
         
         # Ensure dates are in correct format
-        start_date = pd.Timestamp(start_date).date()
-        end_date = pd.Timestamp(end_date).date()
+        start_date = pd.Timestamp(start_date)
+        end_date = pd.Timestamp(end_date)
         
-        # Convert date_column to date for comparison
+        # Convert date_column to datetime64
         df = df.copy()
-        df[date_column] = pd.to_datetime(df[date_column]).dt.date
+        df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
+        logger.info(f"{date_column} dtype after conversion: {df[date_column].dtype}")
         
         # Filter
         mask = (
@@ -623,6 +628,15 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                 try:
                     logger.info("Rendering NOM-035 trends bar chart")
                     trend_data = filtered_nom.copy()
+                    logger.info(f"Trend data Mes dtype: {trend_data['Mes'].dtype}")
+                    
+                    # Ensure Mes is datetime64
+                    if not pd.api.types.is_datetime64_any_dtype(trend_data['Mes']):
+                        logger.warning("Mes column is not datetime64, attempting to convert")
+                        trend_data['Mes'] = pd.to_datetime(trend_data['Mes'], errors='coerce')
+                        if trend_data['Mes'].isna().all():
+                            raise ValueError("No se pudo convertir la columna Mes a datetime")
+                    
                     trend_data['Año'] = trend_data['Mes'].dt.year
                     trend_data = trend_data.groupby(['Departamento', 'Año'])[nom_metrics].mean().groupby('Departamento').pct_change().reset_index()
                     trend_data = trend_data.fillna(0)
