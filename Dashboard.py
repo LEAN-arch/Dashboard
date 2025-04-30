@@ -123,7 +123,7 @@ def load_data():
         'Reducción Desperdicio': np.random.randint(5, 25, len(DEPARTMENTS)),
         'Proyectos Activos': np.random.randint(1, 6, len(DEPARTMENTS)),
         '5S_Score': np.random.randint(60, 100, len(DEPARTMENTS)),
-        'SMED': np.random.randint(50, 90, len(DEPARTMENTS))
+        'Kaizen': np.random.randint(50, 90, len(DEPARTMENTS))
     })
     
     # Wellbeing Data
