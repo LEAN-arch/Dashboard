@@ -885,14 +885,21 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
                 st.warning(f"Error al renderizar detalle: {e}", icon="⚠️")
 
 def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
-    logger.info("Rendering Wellbeing tab")
     st.markdown("#### 😊 Bienestar Organizacional", help="Indicadores de bienestar y clima laboral")
-    filtered_bienestar = filter_dataframe(bienestar_df, [], start_date, end_date)
+    
+    # Ensure proper date filtering
+    filtered_bienestar = bienestar_df[
+        (bienestar_df['Mes'].dt.date >= start_date) & 
+        (bienestar_df['Mes'].dt.date <= end_date)
+    ]
     
     if filtered_bienestar.empty:
-        logger.warning("Filtered Wellbeing DataFrame is empty")
         st.warning("⚠️ No hay datos disponibles para el período seleccionado", icon="⚠️")
         return
+    
+    # Convert to numeric where needed (critical fix)
+    numeric_cols = ['Índice Bienestar', 'Ausentismo', 'Rotación', 'Engagement']
+    filtered_bienestar[numeric_cols] = filtered_bienestar[numeric_cols].apply(pd.to_numeric, errors='coerce')
     
     col1, col2, col3 = st.columns(3, gap="medium")
     with col1:
