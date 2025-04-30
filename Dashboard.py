@@ -219,7 +219,8 @@ def load_data():
                 })
         nom_df = pd.DataFrame(nom_data)
         nom_df['Mes'] = pd.to_datetime(nom_df['Mes'])  # Ensure datetime64
-        logger.info(f"NOM-035 DataFrame shape: {nom_df.shape}, Mes dtype: {nom_df['Mes'].dtype}")
+        nom_df = nom_df.drop_duplicates(subset=['Departamento', 'Mes'])
+        logger.info(f"NOM-035 DataFrame shape: {nom_df.shape}, Mes dtype: {nom_df['Mes'].dtype}, Duplicates: {nom_df.duplicated(subset=['Departamento', 'Mes']).sum()}")
 
         # LEAN Data (2022-2025, monthly)
         lean_data = []
@@ -238,7 +239,8 @@ def load_data():
                 })
         lean_df = pd.DataFrame(lean_data)
         lean_df['Mes'] = pd.to_datetime(lean_df['Mes'])  # Ensure datetime64
-        logger.info(f"LEAN DataFrame shape: {lean_df.shape}, Mes dtype: {lean_df['Mes'].dtype}")
+        lean_df = lean_df.drop_duplicates(subset=['Departamento', 'Mes'])
+        logger.info(f"LEAN DataFrame shape: {lean_df.shape}, Mes dtype: {lean_df['Mes'].dtype}, Duplicates: {lean_df.duplicated(subset=['Departamento', 'Mes']).sum()}")
 
         # Bienestar Data (2022-2025, monthly)
         base_well = np.linspace(70, 85, len(dates))
@@ -251,7 +253,8 @@ def load_data():
             'Engagement': np.clip(base_well + np.random.normal(0, 3, len(dates)), 60, 90).round(1)
         })
         bienestar_df['Mes'] = pd.to_datetime(bienestar_df['Mes'])  # Ensure datetime64
-        logger.info(f"Bienestar DataFrame shape: {bienestar_df.shape}, Mes dtype: {bienestar_df['Mes'].dtype}")
+        bienestar_df = bienestar_df.drop_duplicates(subset=['Mes'])
+        logger.info(f"Bienestar DataFrame shape: {bienestar_df.shape}, Mes dtype: {bienestar_df['Mes'].dtype}, Duplicates: {bienestar_df.duplicated(subset=['Mes']).sum()}")
 
         # Action Plans
         action_plans = pd.DataFrame({
@@ -294,7 +297,8 @@ def load_data():
             'Costo Estimado': np.random.randint(5000, 50000, 20)
         })
         action_plans['Plazo'] = pd.to_datetime(action_plans['Plazo'])  # Ensure datetime64
-        logger.info(f"Action Plans DataFrame shape: {action_plans.shape}, Plazo dtype: {action_plans['Plazo'].dtype}")
+        action_plans = action_plans.drop_duplicates(subset=['ID', 'Departamento', 'Plazo'])
+        logger.info(f"Action Plans DataFrame shape: {action_plans.shape}, Plazo dtype: {action_plans['Plazo'].dtype}, Duplicates: {action_plans.duplicated(subset=['ID', 'Departamento', 'Plazo']).sum()}")
 
         return nom_df, lean_df, bienestar_df, action_plans
     except Exception as e:
@@ -324,7 +328,7 @@ if any(df is None for df in (nom_df, lean_df, bienestar_df)):
 
 # ========== HELPER FUNCTIONS ==========
 def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column='Mes'):
-    """Filter DataFrame by departments and date range, preserving datetime type."""
+    """Filter DataFrame by departments and date range, preserving datetime type and ensuring unique rows."""
     try:
         logger.info(f"Filtering DataFrame with date_column={date_column}")
         if df.empty or date_column not in df.columns:
@@ -339,6 +343,13 @@ def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column
         df = df.copy()
         df[date_column] = pd.to_datetime(df[date_column], errors='coerce')
         logger.info(f"{date_column} dtype after conversion: {df[date_column].dtype}")
+        
+        # Remove duplicates based on Departamento and date_column
+        if 'Departamento' in df.columns:
+            df = df.drop_duplicates(subset=['Departamento', date_column], keep='last')
+        else:
+            df = df.drop_duplicates(subset=[date_column], keep='last')
+        logger.info(f"Duplicates removed, DataFrame shape: {df.shape}")
         
         # Filter
         mask = (
@@ -368,7 +379,7 @@ def render_sidebar():
         st.markdown("""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
             <span style="font-size: 1.5rem;">📊</span>
-            <h2 style="margin: 0; color: white;">NOM-035 & LEAN 2.0</h2>
+            <h2 style="margin: 0; color: white;">NOM-035 & LEAN</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -689,7 +700,7 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
     
     if not lean_metrics:
         logger.warning("No LEAN metrics selected")
-        st.warning("⚠️ Seleccione al menos una métrica LEAN 2.0", icon="⚠️")
+        st.warning("⚠️ Seleccione al menos una métrica LEAN.", icon="⚠️")
         return
     
     filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
@@ -826,13 +837,27 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
         st.markdown("**📌 Detalle de Proyectos**")
         with st.expander("📌 Detalle", expanded=True):
             try:
-                summary_cols = [col for col in lean_metrics + ['Proyectos Activos'] if col in filtered_lean.columns]
+                # Ensure unique columns
+                summary_cols = list(set(lean_metrics + ['Proyectos Activos'] if 'Proyectos Activos' not in lean_metrics else lean_metrics))
+                summary_cols = [col for col in summary_cols if col in filtered_lean.columns]
+                logger.info(f"Summary columns: {summary_cols}")
+                
                 if summary_cols:
-                    summary = filtered_lean.groupby('Departamento')[summary_cols].mean().round(1)
-                    st.dataframe(
-                        summary.style.background_gradient(cmap='Greens').format('{:.1f}'),
-                        use_container_width=True
-                    )
+                    summary = filtered_lean.groupby('Departamento')[summary_cols].mean().round(1).reset_index()
+                    logger.info(f"Summary DataFrame index is unique: {summary.index.is_unique}, columns: {summary.columns.tolist()}")
+                    
+                    try:
+                        st.dataframe(
+                            summary.style.background_gradient(cmap='Greens').format('{:.1f}'),
+                            use_container_width=True
+                        )
+                    except Exception as e:
+                        logger.warning(f"Styling failed: {e}, displaying without styling")
+                        st.dataframe(
+                            summary,
+                            use_container_width=True
+                        )
+                        st.warning(f"⚠️ No se pudo aplicar estilo al resumen: {e}", icon="⚠️")
                 else:
                     st.info("ℹ️ No hay métricas seleccionadas.", icon="ℹ️")
             except Exception as e:
@@ -1260,7 +1285,7 @@ def main():
             ),
             (
                 filtered_lean['Eficiencia'].mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0,
-                "Adopción LEAN 2.0",
+                "Adopción LEAN",
                 lean_target,
                 "🔄",
                 filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0
