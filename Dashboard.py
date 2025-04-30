@@ -3,136 +3,103 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import MinMaxScaler
 import warnings
 warnings.filterwarnings('ignore')
 
-# ========== INITIALIZATION ==========
-# Page config must be first Streamlit command
+# ========== PAGE CONFIGURATION - MUST BE FIRST STREAMLIT COMMAND ==========
 st.set_page_config(
-    page_title="NOM-035 & LEAN Dashboard",
+    page_title="Sistema Integral NOM-035 & LEAN 2.0",
     layout="wide",
     page_icon="📊",
     initial_sidebar_state="expanded"
 )
 
-# ========== DESIGN SYSTEM ==========
-class DesignSystem:
-    # Color palette
-    COLORS = {
-        'primary': '#2563eb',    # More vibrant blue
-        'secondary': '#4f46e5',  # Purple-blue
-        'accent': '#7c3aed',     # Vibrant purple
-        'success': '#10b981',    # Emerald green
-        'warning': '#f59e0b',    # Amber
-        'danger': '#ef4444',     # Red
-        'light': '#f3f4f6',      # Light gray
-        'dark': '#1f2937',       # Dark gray
-        'background': '#ffffff', # Pure white
-        'text': '#374151'        # Dark gray
-    }
-    
-    # Typography
-    FONT = "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
-    
-    # Spacing
-    SPACING = {
-        'xs': '0.25rem',
-        'sm': '0.5rem',
-        'md': '1rem',
-        'lg': '1.5rem',
-        'xl': '2rem'
-    }
-    
-    # Shadows
-    SHADOWS = {
-        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-        'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-        'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-    }
-    
-    # Border radius
-    RADIUS = {
-        'sm': '0.375rem',
-        'md': '0.5rem',
-        'lg': '0.75rem',
-        'full': '9999px'
-    }
+# ========== CONSTANTS AND CONFIGURATION ==========
+DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
 
-# Initialize design system
-ds = DesignSystem()
+# Professional color scheme
+COLOR_PALETTE = {
+    'primary': '#2c3e50',       # Dark blue
+    'secondary': '#3498db',     # Bright blue
+    'accent': '#2980b9',        # Medium blue
+    'success': '#27ae60',       # Green
+    'warning': '#f39c12',       # Orange
+    'danger': '#e74c3c',        # Red
+    'light': '#ecf0f1',         # Light gray
+    'dark': '#2c3e50',          # Dark blue
+    'background': '#f9f9f9',    # Off-white
+    'text': '#333333'           # Dark gray
+}
 
-# Load custom font and styles
+# Font settings
+FONT_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+html, body, [class*="css"] {
+    font-family: 'Open Sans', sans-serif;
+}
+</style>
+"""
+st.markdown(FONT_CSS, unsafe_allow_html=True)
+
+# Custom CSS for professional styling
 st.markdown(f"""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-* {{
-    font-family: {ds.FONT};
-}}
-
-/* Main layout */
-.main {{
-    background-color: {ds.COLORS['background']};
-    padding: {ds.SPACING['md']};
-}}
-
-/* Sidebar */
-[data-testid="stSidebar"] {{
-    background-color: {ds.COLORS['dark']} !important;
-    color: white !important;
-}}
-
-/* Cards */
-.card {{
-    background-color: white;
-    border-radius: {ds.RADIUS['md']};
-    padding: {ds.SPACING['md']};
-    box-shadow: {ds.SHADOWS['sm']};
-    transition: all 0.2s ease;
-}}
-
-.card:hover {{
-    box-shadow: {ds.SHADOWS['md']};
-    transform: translateY(-2px);
-}}
-
-/* Interactive elements */
-button {{
-    transition: all 0.2s ease !important;
-}}
-
-button:hover {{
-    transform: translateY(-1px);
-}}
-
-/* Data tables */
-.stDataFrame {{
-    border-radius: {ds.RADIUS['sm']};
-    box-shadow: {ds.SHADOWS['sm']};
-}}
-
-/* Tabs */
-[data-baseweb="tab-list"] {{
-    gap: {ds.SPACING['sm']};
-}}
-
-[data-baseweb="tab"] {{
-    border-radius: {ds.RADIUS['full']} !important;
-    padding: {ds.SPACING['sm']} {ds.SPACING['md']} !important;
-    transition: all 0.2s ease !important;
-}}
-
-[aria-selected="true"] {{
-    background-color: {ds.COLORS['primary']} !important;
-    color: white !important;
-    font-weight: 600 !important;
-}}
+    /* Main container */
+    .main {{
+        background-color: {COLOR_PALETTE['background']};
+    }}
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] {{
+        background-color: {COLOR_PALETTE['primary']} !important;
+        color: white !important;
+    }}
+    
+    /* Titles */
+    h1, h2, h3, h4, h5, h6 {{
+        color: {COLOR_PALETTE['primary']} !important;
+        font-weight: 700 !important;
+    }}
+    
+    /* Cards */
+    .card {{
+        background-color: white;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }}
+    
+    /* Tabs */
+    [data-baseweb="tab-list"] {{
+        gap: 10px;
+    }}
+    
+    [data-baseweb="tab"] {{
+        background-color: {COLOR_PALETTE['light']} !important;
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
+        margin: 0 5px !important;
+    }}
+    
+    [aria-selected="true"] {{
+        background-color: {COLOR_PALETTE['primary']} !important;
+        color: white !important;
+    }}
+    
+    /* Dataframes */
+    .stDataFrame {{
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }}
 </style>
 """, unsafe_allow_html=True)
 
+# [Rest of your code remains exactly the same...]
 
 # ========== DATA LOADING AND PROCESSING ==========
 @st.cache_data(ttl=600)
