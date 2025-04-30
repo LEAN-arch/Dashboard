@@ -323,7 +323,7 @@ with cols[0]:
 with cols[1]: 
     kpi_card(
         round(lean_adoption), 
-        "Adopción LEAN", 
+        "Adopción LEAN 2.0", 
         lean_target, 
         "🔄",
         "Nivel de implementación de metodologías LEAN"
