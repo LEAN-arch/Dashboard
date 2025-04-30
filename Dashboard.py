@@ -23,17 +23,17 @@ st.set_page_config(
 DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI', 'Mantenimiento', 'R&D', 'Ingeniería']
 
 COLOR_PALETTE = {
-    'primary': '#1e3a8a',       # High-contrast navy blue
-    'secondary': '#3b82f6',     # Vibrant blue for interactivity
-    'accent': '#60a5fa',        # Light blue for highlights
-    'success': '#15803d',       # Accessible green
-    'warning': '#b45309',       # Accessible amber
-    'danger': '#b91c1c',        # Accessible red
-    'background': '#f8fafc',    # Soft gray background
-    'text': '#1f2937',          # Dark gray for readability
-    'muted': '#6b7280',         # Subtle gray for secondary text
-    'card': '#ffffff',          # White for cards
-    'border': '#e2e8f0'         # Light border color
+    'primary': '#1e3a8a',
+    'secondary': '#3b82f6',
+    'accent': '#60a5fa',
+    'success': '#15803d',
+    'warning': '#b45309',
+    'danger': '#b91c1c',
+    'background': '#f8fafc',
+    'text': '#1f2937',
+    'muted': '#6b7280',
+    'card': '#ffffff',
+    'border': '#e2e8f0'
 }
 
 # Custom CSS for modern, accessible, and responsive design
@@ -158,6 +158,13 @@ h1, h2, h3, h4, h5, h6 {
 .stDateInput > div > input:focus {
     border-color: var(--secondary);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.stDateInput [data-baseweb="calendar"] {
+    z-index: 9999;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
 
 .error-message {
@@ -300,13 +307,34 @@ def load_data():
 
 # Initialize session state
 if 'action_plans_df' not in st.session_state:
-    _, _, _, action_plans = load_data()
-    st.session_state.action_plans_df = action_plans
+    nom_df, lean_df, bienestar_df, action_plans = load_data()
+    if action_plans is None:
+        st.error("No se pudieron cargar los planes de acción. Intente de nuevo.", icon="🚨")
+        st.session_state.action_plans_df = pd.DataFrame(columns=[
+            'ID', 'Departamento', 'Problema', 'Acción', 'Responsable', 'Plazo',
+            'Estado', 'Prioridad', '% Avance', 'Costo Estimado'
+        ])
+    else:
+        st.session_state.action_plans_df = action_plans
 
 # Load data
 nom_df, lean_df, bienestar_df, _ = load_data()
 if any(df is None for df in (nom_df, lean_df, bienestar_df)):
     st.stop()
+
+# ========== HELPER FUNCTIONS ==========
+def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column='Mes'):
+    """Filter DataFrame by departments and date range."""
+    try:
+        filtered_df = df[
+            (df['Departamento'].isin(departamentos_filtro) if 'Departamento' in df.columns else True) &
+            (df[date_column].dt.date >= start_date) &
+            (df[date_column].dt.date <= end_date)
+        ]
+        return filtered_df
+    except Exception as e:
+        st.warning(f"Error al filtrar datos: {e}", icon="⚠️")
+        return pd.DataFrame()
 
 # ========== SIDEBAR ==========
 def render_sidebar():
@@ -331,22 +359,25 @@ def render_sidebar():
                     max_value=date(2025, 12, 31),
                     key="date_start",
                     help="Fecha de inicio del período de análisis",
-                    format="DD/MM/YYYY"
+                    format="DD/MM/YYYY",
+                    on_change=None
                 )
             with col2:
+                min_end_date = start_date if start_date else date(2022, 1, 1)
                 end_date = st.date_input(
                     "Fin",
                     value=date(2025, 12, 31),
-                    min_value=start_date,
+                    min_value=min_end_date,
                     max_value=date(2025, 12, 31),
                     key="date_end",
                     help="Fecha de fin del período de análisis",
-                    format="DD/MM/YYYY"
+                    format="DD/MM/YYYY",
+                    on_change=None
                 )
             
             if start_date > end_date:
                 st.markdown("<p class='error-message'>La fecha de inicio no puede ser posterior a la fecha de fin</p>", unsafe_allow_html=True)
-                return None, None, None
+                return None, None, None, None, None, None
             
             st.markdown("**Departamentos**", help="Filtre por departamentos específicos")
             departamentos_filtro = st.multiselect(
@@ -448,11 +479,7 @@ def kpi_card(value, title, target, icon, help_text, delta=None):
 # ========== TABS ==========
 def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics):
     st.markdown("#### 📋 Cumplimiento NOM-035", help="Monitorea el cumplimiento de la NOM-035 en factores psicosociales")
-    filtered_nom = nom_df[
-        (nom_df['Departamento'].isin(departamentos_filtro)) &
-        (nom_df['Mes'].dt.date >= start_date) &
-        (nom_df['Mes'].dt.date <= end_date)
-    ]
+    filtered_nom = filter_dataframe(nom_df, departamentos_filtro, start_date, end_date)
     
     if filtered_nom.empty:
         st.warning("⚠️ No hay datos disponibles para los filtros seleccionados", icon="⚠️")
@@ -589,11 +616,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
 
 def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics):
     st.markdown("#### 🔄 Progreso LEAN 2.0", help="Seguimiento de métricas LEAN para optimización de procesos")
-    filtered_lean = lean_df[
-        (lean_df['Departamento'].isin(departamentos_filtro)) &
-        (lean_df['Mes'].dt.date >= start_date) &
-        (lean_df['Mes'].dt.date <= end_date)
-    ]
+    filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
     
     if filtered_lean.empty:
         st.warning("⚠️ No hay datos disponibles para los filtros seleccionados", icon="⚠️")
@@ -696,10 +719,7 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
 
 def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
     st.markdown("#### 😊 Bienestar Organizacional", help="Indicadores de bienestar y clima laboral")
-    filtered_bienestar = bienestar_df[
-        (bienestar_df['Mes'].dt.date >= start_date) &
-        (bienestar_df['Mes'].dt.date <= end_date)
-    ]
+    filtered_bienestar = filter_dataframe(bienestar_df, [], start_date, end_date)
     
     if filtered_bienestar.empty:
         st.warning("⚠️ No hay datos disponibles para el período seleccionado", icon="⚠️")
@@ -799,11 +819,7 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
 
 def render_action_plans_tab(departamentos_filtro, start_date, end_date):
     st.markdown("#### 📝 Planes de Acción", help="Gestión de planes de acción para abordar problemas identificados")
-    filtered_plans = st.session_state.action_plans_df[
-        (st.session_state.action_plans_df['Departamento'].isin(departamentos_filtro)) &
-        (st.session_state.action_plans_df['Plazo'] >= start_date) &
-        (st.session_state.action_plans_df['Plazo'] <= end_date)
-    ]
+    filtered_plans = filter_dataframe(st.session_state.action_plans_df, departamentos_filtro, start_date, end_date, date_column='Plazo')
     
     col1, col2 = st.columns([3, 1], gap="medium")
     with col1:
@@ -962,15 +978,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
             )
             include_charts = st.checkbox("Incluir gráficos", value=True, help="Incluye visualizaciones en el reporte")
             if st.button("🖨️ Generar", use_container_width=True):
-                with st.spinner("Generando reporte..."):
-                    st.success("✅ Reporte generado", icon="✅")
-                    st.download_button(
-                        label="📥 Descargar PDF",
-                        data=io.BytesIO(f"Reporte {report_type} con {'gráficos' if include_charts else 'sin gráficos'}".encode()),
-                        file_name=f"Reporte_{report_type}_{datetime.now().strftime('%Y%m%d')}.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
+                st.warning("⚠️ La generación de PDF no está implementada en esta versión.", icon="⚠️")
     
     with col2:
         with st.expander("📧 Enviar por Correo", expanded=False):
@@ -985,15 +993,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                 elif not subject:
                     st.markdown("<p class='error-message'>El campo Asunto es obligatorio</p>", unsafe_allow_html=True)
                 else:
-                    with st.spinner("Enviando correo..."):
-                        st.success("✅ Correo enviado", icon="✅")
-                        st.download_button(
-                            label="📥 Descargar Contenido",
-                            data=f"To: {email}\nSubject: {subject}\n\nReporte enviado el {datetime.now().strftime('%d/%m/%Y %H:%M')}",
-                            file_name=f"Correo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
-                            mime="text/plain",
-                            use_container_width=True
-                        )
+                    st.warning("⚠️ La funcionalidad de envío de correo no está implementada en esta versión.", icon="⚠️")
     
     with col3:
         with st.expander("📊 Exportar Datos", expanded=False):
@@ -1010,8 +1010,8 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                     st.markdown("<p class='error-message'>Seleccione al menos un tipo de datos</p>", unsafe_allow_html=True)
                 else:
                     with st.spinner("Preparando datos..."):
-                        export_data = []  # Initialize as empty list
-                        if "NOM-035" in data_options:
+                        export_data = []
+                        if "NOM Lanka" in data_options:
                             export_data.append(nom_df.assign(Tipo="NOM-035"))
                         if "LEAN" in data_options:
                             export_data.append(lean_df.assign(Tipo="LEAN"))
@@ -1021,7 +1021,8 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                             export_data.append(st.session_state.action_plans_df.assign(Tipo="Planes_Accion"))
                         
                         if export_data:
-                            combined_data = pd.concat(export_data, ignore_index=True)
+                            # Ensure compatible columns by selecting common columns or handling separately
+                            combined_data = pd.concat([df for df in export_data], ignore_index=True, sort=False)
                         else:
                             combined_data = pd.DataFrame()
                         
@@ -1068,23 +1069,12 @@ def main():
         
         st.markdown("### Indicadores Clave", help="Resumen de métricas clave para NOM-035, LEAN y bienestar")
         cols = st.columns(4, gap="medium")
-        filtered_nom = nom_df[
-            (nom_df['Departamento'].isin(departamentos_filtro)) &
-            (nom_df['Mes'].dt.date >= start_date) &
-            (nom_df['Mes'].dt.date <= end_date)
-        ]
-        filtered_lean = lean_df[
-            (lean_df['Departamento'].isin(departamentos_filtro)) &
-            (lean_df['Mes'].dt.date >= start_date) &
-            (lean_df['Mes'].dt.date <= end_date)
-        ]
-        filtered_bienestar = bienestar_df[
-            (bienestar_df['Mes'].dt.date >= start_date) &
-            (bienestar_df['Mes'].dt.date <= end_date)
-        ]
+        filtered_nom = filter_dataframe(nom_df, departamentos_filtro, start_date, end_date)
+        filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
+        filtered_bienestar = filter_dataframe(bienestar_df, [], start_date, end_date)
         kpis = [
             (
-                filtered_nom['Evaluaciones'].mean(),
+                filtered_nom['Evaluaciones'].mean() if not filtered_nom.empty else 0,
                 "Cumplimiento NOM-035",
                 nom_target,
                 "📋",
@@ -1092,7 +1082,7 @@ def main():
                 filtered_nom['Evaluaciones'].mean() - filtered_nom.groupby('Departamento')['Evaluaciones'].mean().shift(1).mean() if not filtered_nom.empty else 0
             ),
             (
-                filtered_lean['Eficiencia'].mean(),
+                filtered_lean['Eficiencia'].mean() if not filtered_lean.empty else 0,
                 "Adopción LEAN",
                 lean_target,
                 "🔄",
@@ -1100,7 +1090,7 @@ def main():
                 filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty else 0
             ),
             (
-                filtered_bienestar['Índice Bienestar'].mean(),
+                filtered_bienestar['Índice Bienestar'].mean() if not filtered_bienestar.empty else 0,
                 "Índice Bienestar",
                 wellbeing_target,
                 "😊",
@@ -1108,7 +1098,7 @@ def main():
                 filtered_bienestar['Índice Bienestar'].mean() - filtered_bienestar['Índice Bienestar'].shift(1).mean() if not filtered_bienestar.empty else 0
             ),
             (
-                filtered_lean['Eficiencia'].mean(),
+                filtered_lean['Eficiencia'].mean() if not filtered_lean.empty else 0,
                 "Eficiencia Operativa",
                 efficiency_target,
                 "⚙️",
