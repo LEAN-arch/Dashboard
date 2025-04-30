@@ -487,20 +487,20 @@ with tab2:
             # Waste reduction vs efficiency scatter plot
             fig_scatter = px.scatter(
                 filtered_lean,
-                x='Reducción Desperdicio',
+                x='Reducción MURI/MURA/MUDA',
                 y='Eficiencia',
                 size='Proyectos Activos',
                 color='Departamento',
                 hover_name='Departamento',
                 labels={
-                    'Reducción Desperdicio': 'Reducción de Desperdicio (%)',
+                    'Reducción MURI/MURA/MUDA': 'Reducción de MURI/MURA/MUDA (%)',
                     'Eficiencia': 'Eficiencia (%)',
                     'Proyectos Activos': 'Proyectos Activos'
                 },
                 height=400
             )
             fig_scatter.update_layout(
-                title="Relación Eficiencia vs Reducción de Desperdicio",
+                title="Relación Eficiencia vs Reducción de MURI/MURA/MUDA",
                 plot_bgcolor='rgba(0,0,0,0)',
                 margin=dict(l=20, r=20, t=40, b=20)
             )
