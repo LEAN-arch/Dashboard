@@ -120,7 +120,7 @@ def load_data():
     lean = pd.DataFrame({
         'Departamento': DEPARTMENTS,
         'Eficiencia': np.random.randint(60, 95, len(DEPARTMENTS)),
-        'Reducción Desperdicio': np.random.randint(5, 25, len(DEPARTMENTS)),
+        'Reducción MURI/MURA/MUDA': np.random.randint(5, 25, len(DEPARTMENTS)),
         'Proyectos Activos': np.random.randint(1, 6, len(DEPARTMENTS)),
         '5S+2_Score': np.random.randint(60, 100, len(DEPARTMENTS)),
         'Kaizen Colectivo': np.random.randint(50, 90, len(DEPARTMENTS))
