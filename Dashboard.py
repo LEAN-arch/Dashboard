@@ -515,7 +515,7 @@ with tab2:
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
             lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S+2_Score', 'Kaizen Colectivo']] = scaler.fit_transform(
-                lean_radar[['Eficiencia', 'Reducción Desperdicio', '5S+2_Score', 'Kaizen Colectivo']]
+                lean_radar[['Eficiencia', 'Reducción MURI/MURA/MUDA', '5S+2_Score', 'Kaizen Colectivo']]
             )
             
             for dept in filtered_lean['Departamento']:
