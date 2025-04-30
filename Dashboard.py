@@ -410,6 +410,7 @@ def render_sidebar():
             efficiency_target = st.slider("Meta Eficiencia (%)", 50, 100, 75, help="Porcentaje objetivo de eficiencia operativa")
         
         st.markdown("---")
+ Economy
         if st.button("🔄 Actualizar", use_container_width=True, help="Refresca los datos y visualizaciones"):
             st.cache_data.clear()
             st.rerun()
@@ -616,6 +617,11 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
 
 def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_date, lean_metrics):
     st.markdown("#### 🔄 Progreso LEAN 2.0", help="Seguimiento de métricas LEAN para optimización de procesos")
+    
+    if not lean_metrics:
+        st.warning("⚠️ Por favor, seleccione al menos una métrica LEAN en los filtros.", icon="⚠️")
+        return
+    
     filtered_lean = filter_dataframe(lean_df, departamentos_filtro, start_date, end_date)
     
     if filtered_lean.empty:
@@ -655,18 +661,20 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
             st.plotly_chart(fig_lean, use_container_width=True)
         
         with st.spinner("Cargando análisis de desperdicio..."):
+            grouped_lean = filtered_lean.groupby('Departamento')[lean_metrics + (['Proyectos Activos'] if 'Proyectos Activos' in filtered_lean.columns else [])].mean().reset_index()
+            size_col = 'Proyectos Activos' if 'Proyectos Activos' in grouped_lean.columns else lean_metrics[0]
             fig_scatter = px.scatter_3d(
-                filtered_lean.groupby('Departamento')[lean_metrics].mean().reset_index(),
+                grouped_lean,
                 x=lean_metrics[0],
-                y=lean_metrics[1] if len(lean_metrics) > 1 else 'Proyectos Activos',
-                z=lean_metrics[2] if len(lean_metrics) > 2 else '5S+2_Score',
+                y=lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0],
+                z=lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0],
                 color='Departamento',
-                size='Proyectos Activos',
+                size=size_col,
                 hover_name='Departamento',
                 labels={
                     lean_metrics[0]: lean_metrics[0],
-                    lean_metrics[1] if len(lean_metrics) > 1 else 'Proyectos Activos': lean_metrics[1] if len(lean_metrics) > 1 else 'Proyectos Activos',
-                    lean_metrics[2] if len(lean_metrics) > 2 else '5S+2_Score': lean_metrics[2] if len(lean_metrics) > 2 else '5S+2_Score'
+                    lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0]: lean_metrics[1] if len(lean_metrics) > 1 else lean_metrics[0],
+                    lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0]: lean_metrics[2] if len(lean_metrics) > 2 else lean_metrics[0]
                 },
                 height=450
             )
@@ -709,13 +717,17 @@ def render_lean_tab(lean_df, departamentos_filtro, lean_target, start_date, end_
             )
             st.plotly_chart(fig_radar, use_container_width=True)
         
+        st.markdown("**📌 Detalle de Proyectos**", help="Resumen de métricas LEAN y proyectos activos por departamento")
         with st.expander("📌 Detalle de Proyectos", expanded=True):
-            st.dataframe(
-                filtered_lean.groupby('Departamento')[lean_metrics + ['Proyectos Activos']].mean().round(1)
-                .style.background_gradient(cmap='Greens')
-                .format('{:.1f}'),
-                use_container_width=True
-            )
+            summary_cols = lean_metrics + (['Proyectos Activos'] if 'Proyectos Activos' in filtered_lean.columns else [])
+            if summary_cols:
+                summary = filtered_lean.groupby('Departamento')[summary_cols].mean().round(1)
+                st.dataframe(
+                    summary.style.background_gradient(cmap='Greens').format('{:.1f}'),
+                    use_container_width=True
+                )
+            else:
+                st.info("ℹ️ No hay métricas seleccionadas para mostrar.", icon="ℹ️")
 
 def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
     st.markdown("#### 😊 Bienestar Organizacional", help="Indicadores de bienestar y clima laboral")
@@ -1011,7 +1023,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                 else:
                     with st.spinner("Preparando datos..."):
                         export_data = []
-                        if "NOM Lanka" in data_options:
+                        if "NOM-035" in data_options:
                             export_data.append(nom_df.assign(Tipo="NOM-035"))
                         if "LEAN" in data_options:
                             export_data.append(lean_df.assign(Tipo="LEAN"))
@@ -1021,7 +1033,6 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                             export_data.append(st.session_state.action_plans_df.assign(Tipo="Planes_Accion"))
                         
                         if export_data:
-                            # Ensure compatible columns by selecting common columns or handling separately
                             combined_data = pd.concat([df for df in export_data], ignore_index=True, sort=False)
                         else:
                             combined_data = pd.DataFrame()
@@ -1045,6 +1056,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                             
                             st.success(f"✅ Datos exportados como {export_format}", icon="✅")
                             st.download_button(
+ adidas
                                 label=f"📥 Descargar .{ext}",
                                 data=data,
                                 file_name=f"nom_lean_data_{datetime.now().strftime('%Y%m%d')}.{ext}",
