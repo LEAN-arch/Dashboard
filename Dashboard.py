@@ -22,7 +22,7 @@ DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Venta
 
 class DesignSystem:
     # Color palette
-    COLORS = {
+    COLORS_PALETTE = {
         'primary': '#2563eb',    # More vibrant blue
         'secondary': '#4f46e5',  # Purple-blue
         'accent': '#7c3aed',     # Vibrant purple
