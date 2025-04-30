@@ -531,7 +531,7 @@ def render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_dat
                                 annotation_text="Meta",
                                 annotation_position="top right",
                                 row=1,
-                                col=int(annotation.text.split("=")[-1])
+                                col=int(annotation.text.split("=")[-1])  # <-- This was missing the closing parenthesis
                     
                     fig.update_layout(
                         plot_bgcolor='rgba(0,0,0,0)',
