@@ -23,52 +23,55 @@ st.set_page_config(
 DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI', 'Mantenimiento', 'R&D', 'Ingeniería']
 
 COLOR_PALETTE = {
-    'primary': '#1a3c5e',       # Darker blue for better contrast
-    'secondary': '#2b6cb0',     # Softer blue for accents
-    'accent': '#4a90e2',        # Bright blue for interactive elements
-    'success': '#2f855a',       # Accessible green
-    'warning': '#d97706',       # Accessible orange
-    'danger': '#c53030',        # Accessible red
-    'light': '#f7fafc',         # Light background
-    'dark': '#1a202c',          # Dark text/icons
-    'background': '#ffffff',     # Clean white
-    'text': '#2d3748',          # Readable gray
-    'muted': '#718096'          # Subtle text
+    'primary': '#1e3a8a',       # High-contrast navy blue
+    'secondary': '#3b82f6',     # Vibrant blue for interactivity
+    'accent': '#60a5fa',        # Light blue for highlights
+    'success': '#15803d',       # Accessible green
+    'warning': '#b45309',       # Accessible amber
+    'danger': '#b91c1c',        # Accessible red
+    'background': '#f8fafc',    # Soft gray background
+    'text': '#1f2937',          # Dark gray for readability
+    'muted': '#6b7280',         # Subtle gray for secondary text
+    'card': '#ffffff',          # White for cards
+    'border': '#e2e8f0'         # Light border color
 }
 
-# Custom CSS for professional, accessible, and responsive styling
+# Custom CSS for modern, accessible, and responsive design
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-    --primary: #1a3c5e;
-    --secondary: #2b6cb0;
-    --accent: #4a90e2;
-    --success: #2f855a;
-    --warning: #d97706;
-    --danger: #c53030;
-    --light: #f7fafc;
-    --background: #ffffff;
-    --text: #2d3748;
-    --muted: #718096;
+    --primary: #1e3a8a;
+    --secondary: #3b82f6;
+    --accent: #60a5fa;
+    --success: #15803d;
+    --warning: #b45309;
+    --danger: #b91c1c;
+    --background: #f8fafc;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --card: #ffffff;
+    --border: #e2e8f0;
 }
 
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
     color: var(--text);
-    line-height: 1.5;
+    background-color: var(--background);
+    line-height: 1.6;
 }
 
 .main {
-    background-color: var(--background);
-    padding: 1rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
 }
 
 [data-testid="stSidebar"] {
     background-color: var(--primary) !important;
     color: white !important;
-    padding: 1rem;
+    padding: 1.5rem;
 }
 
 [data-testid="stSidebar"] * {
@@ -78,49 +81,51 @@ html, body, [class*="css"] {
 h1, h2, h3, h4, h5, h6 {
     color: var(--primary);
     font-weight: 600;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 1.25rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    background-color: var(--card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--border);
 }
 
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
 .stButton > button {
     background-color: var(--secondary);
     color: white;
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
     font-weight: 500;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 .stButton > button:hover {
     background-color: var(--accent);
+    transform: translateY(-2px);
 }
 
 .stButton > button:focus {
-    outline: 2px solid var(--accent);
+    outline: 3px solid var(--accent);
     outline-offset: 2px;
 }
 
 [data-baseweb="tab-list"] {
-    gap: 0.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 1rem;
+    gap: 0.75rem;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1.5rem;
 }
 
 [data-baseweb="tab"] {
-    background-color: var(--light) !important;
-    border-radius: 6px 6px 0 0 !important;
+    background-color: var(--card) !important;
+    border-radius: 8px 8px 0 0 !important;
     padding: 0.75rem 1.5rem !important;
     color: var(--text) !important;
     font-weight: 500;
@@ -130,49 +135,67 @@ h1, h2, h3, h4, h5, h6 {
 [data-baseweb="tab"][aria-selected="true"] {
     background-color: var(--primary) !important;
     color: white !important;
+    border-bottom: 2px solid var(--secondary);
 }
 
 .stDataFrame {
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
+    border: 1px solid var(--border);
 }
 
 .stTextInput > div > input,
 .stSelectbox > div > select,
 .stDateInput > div > input {
-    border: 1px solid #cbd5e0;
-    border-radius: 6px;
-    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    background-color: var(--card);
 }
 
 .stTextInput > div > input:focus,
 .stSelectbox > div > select:focus,
 .stDateInput > div > input:focus {
     border-color: var(--secondary);
-    box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.2);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .error-message {
     color: var(--danger);
     font-size: 0.875rem;
-    margin-top: 0.25rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+}
+
+.progress-bar {
+    height: 8px;
+    background-color: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
 }
 
 @media (max-width: 768px) {
     .main {
-        padding: 0.5rem;
+        padding: 1rem;
     }
     [data-testid="stSidebar"] {
-        padding: 0.5rem;
+        padding: 1rem;
     }
     .card {
         padding: 1rem;
     }
     [data-baseweb="tab"] {
         padding: 0.5rem 1rem;
+        font-size: 0.875rem;
     }
     .stButton > button {
         width: 100%;
+        padding: 0.5rem;
     }
 }
 </style>
@@ -183,55 +206,78 @@ h1, h2, h3, h4, h5, h6 {
 def load_data():
     try:
         np.random.seed(42)
+        # Realistic data with correlations
+        n_depts = len(DEPARTMENTS)
+        base_evals = np.random.normal(85, 8, n_depts)
         nom = pd.DataFrame({
             'Departamento': DEPARTMENTS,
-            'Evaluaciones': np.random.randint(70, 100, len(DEPARTMENTS)),
-            'Capacitaciones': np.random.randint(60, 100, len(DEPARTMENTS)),
-            'Incidentes': np.random.randint(0, 10, len(DEPARTMENTS)),
-            'Tendencia': np.round(np.random.normal(0.5, 1.5, len(DEPARTMENTS)), 2)
+            'Evaluaciones': np.clip(base_evals, 70, 100).round(1),
+            'Capacitaciones': np.clip(base_evals + np.random.normal(0, 5, n_depts), 60, 100).round(1),
+            'Incidentes': np.clip(np.round(10 - base_evals / 10 + np.random.normal(0, 1, n_depts)), 0, 10),
+            'Tendencia': np.round(np.random.normal(0.5, 1.5, n_depts), 2)
         })
+        
+        base_eff = np.random.normal(80, 10, n_depts)
         lean = pd.DataFrame({
             'Departamento': DEPARTMENTS,
-            'Eficiencia': np.random.randint(60, 95, len(DEPARTMENTS)),
-            'Reducción MURI/MURA/MUDA': np.random.randint(5, 25, len(DEPARTMENTS)),
-            'Proyectos Activos': np.random.randint(1, 6, len(DEPARTMENTS)),
-            '5S+2_Score': np.random.randint(60, 100, len(DEPARTMENTS)),
-            'Kaizen Colectivo': np.random.randint(50, 90, len(DEPARTMENTS))
+            'Eficiencia': np.clip(base_eff, 60, 95).round(1),
+            'Reducción MURI/MURA/MUDA': np.clip(base_eff / 4 + np.random.normal(0, 3, n_depts), 5, 25).round(1),
+            'Proyectos Activos': np.clip(np.round(base_eff / 20 + np.random.normal(0, 1, n_depts)), 1, 6),
+            '5S+2_Score': np.clip(base_eff + np.random.normal(0, 5, n_depts), 60, 100).round(1),
+            'Kaizen Colectivo': np.clip(base_eff - np.random.normal(5, 5, n_depts), 50, 90).round(1)
         })
-        dates = pd.date_range(start='2024-01-01', periods=12, freq='M')
+        
+        dates = pd.date_range(start='2024-01-01', end='2024-12-31', freq='M')
+        n_months = len(dates)
+        base_well = np.linspace(70, 85, n_months)
         bienestar = pd.DataFrame({
             'Mes': dates,
-            'Índice Bienestar': np.round(np.linspace(70, 85, 12) + np.random.normal(0, 3, 12), 1),
-            'Ausentismo': np.round(np.linspace(10, 7, 12) + np.random.normal(0, 1, 12), 1),
-            'Rotación': np.round(np.linspace(15, 10, 12) + np.random.normal(0, 1.5, 12), 1),
-            'Encuestas': np.random.randint(80, 100, 12)
+            'Índice Bienestar': np.clip(base_well + np.random.normal(0, 2, n_months), 60, 90).round(1),
+            'Ausentismo': np.clip(10 - base_well / 10 + np.random.normal(0, 0.5, n_months), 5, 15).round(1),
+            'Rotación': np.clip(15 - base_well / 15 + np.random.normal(0, 0.7, n_months), 5, 20).round(1),
+            'Encuestas': np.clip(np.round(80 + np.random.normal(0, 5, n_months)), 75, 100)
         })
+        
         action_plans = pd.DataFrame({
-            'ID': range(1, 6),
-            'Departamento': np.random.choice(DEPARTMENTS, 5),
+            'ID': range(1, 11),
+            'Departamento': np.random.choice(DEPARTMENTS, 10),
             'Problema': [
-                'Falta de capacitación en NOM-035',
-                'Baja eficiencia en línea de producción',
-                'Alto ausentismo en turno nocturno',
-                'Desperdicio de materiales',
-                'Falta de estandarización de procesos'
+                'Bajo cumplimiento en evaluaciones psicosociales',
+                'Ineficiencias en la línea de ensamblaje',
+                'Alta rotación en el turno nocturno',
+                'Exceso de desperdicio en materiales',
+                'Falta de estandarización en procesos',
+                'Baja participación en capacitaciones',
+                'Retrasos en la cadena de suministro',
+                'Fallas recurrentes en maquinaria',
+                'Deficiencias en la documentación de procesos',
+                'Bajo índice de bienestar reportado'
             ],
             'Acción': [
-                'Programar capacitación obligatoria',
-                'Implementar análisis de tiempos y movimientos',
-                'Realizar estudio de clima laboral',
-                'Aplicar herramientas de Lean Manufacturing',
-                'Documentar procesos críticos'
+                'Implementar evaluaciones mensuales',
+                'Aplicar estudio de tiempos y movimientos',
+                'Mejorar incentivos para turno nocturno',
+                'Introducir programa 5R para materiales',
+                'Desarrollar manual de procedimientos',
+                'Programar sesiones de capacitación obligatorias',
+                'Optimizar logística con proveedores',
+                'Implementar mantenimiento predictivo',
+                'Capacitar equipo en documentación',
+                'Lanzar programa de bienestar integral'
             ],
-            'Responsable': ['Juan Pérez', 'María García', 'Luis Martínez', 'Ana López', 'Carlos Rodríguez'],
-            'Plazo': [date(2024, 6, 15), date(2024, 5, 30), date(2024, 7, 1), date(2024, 6, 10), date(2024, 8, 15)],
-            'Estado': ['En progreso', 'Pendiente', 'Completado', 'En progreso', 'Pendiente'],
-            'Prioridad': ['Alta', 'Media', 'Alta', 'Media', 'Baja'],
-            '% Avance': [65, 0, 100, 30, 0]
+            'Responsable': [
+                'Ana Gómez', 'Pedro Sánchez', 'Lucía Fernández', 'Carlos Ruiz', 
+                'María López', 'Juan Martínez', 'Sofía Pérez', 'Diego García', 
+                'Elena Torres', 'Miguel Ángel'
+            ],
+            'Plazo': [date(2024, i, 15) for i in range(6, 11)] + [date(2024, i, 30) for i in range(6, 11)],
+            'Estado': np.random.choice(['Pendiente', 'En progreso', 'Completado'], 10, p=[0.3, 0.5, 0.2]),
+            'Prioridad': np.random.choice(['Alta', 'Media', 'Baja'], 10, p=[0.4, 0.4, 0.2]),
+            '% Avance': np.random.choice([0, 25, 50, 75, 100], 10)
         })
         return nom, lean, bienestar, action_plans
     except Exception as e:
-        st.error(f"Error al cargar datos: {e}")
+        st.error(f"Error al cargar datos: {e}", icon="🚨")
         return None, None, None, None
 
 # Initialize session state for action plans
@@ -248,8 +294,8 @@ if None in (nom_df, lean_df, bienestar_df):
 def render_sidebar():
     with st.sidebar:
         st.markdown("""
-        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
-            <span style="font-size: 1.5rem;">📊</span>
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+            <span style="font-size: 2rem;">📊</span>
             <h2 style="margin: 0; color: white;">NOM-035 & LEAN</h2>
         </div>
         """, unsafe_allow_html=True)
@@ -257,7 +303,7 @@ def render_sidebar():
         st.markdown("---")
         
         with st.expander("🔍 Filtros", expanded=True):
-            st.markdown("**Período**")
+            st.markdown("**Período**", help="Seleccione el rango de fechas para el análisis")
             col1, col2 = st.columns(2)
             with col1:
                 start_date = st.date_input(
@@ -266,7 +312,8 @@ def render_sidebar():
                     min_value=date(2024, 1, 1),
                     max_value=date(2024, 12, 31),
                     key="date_start",
-                    help="Seleccione la fecha de inicio del período"
+                    help="Fecha de inicio del período de análisis",
+                    format="DD/MM/YYYY"
                 )
             with col2:
                 end_date = st.date_input(
@@ -275,14 +322,15 @@ def render_sidebar():
                     min_value=start_date,
                     max_value=date(2024, 12, 31),
                     key="date_end",
-                    help="Seleccione la fecha de fin del período"
+                    help="Fecha de fin del período de análisis",
+                    format="DD/MM/YYYY"
                 )
             
             if start_date > end_date:
                 st.markdown("<p class='error-message'>La fecha de inicio no puede ser posterior a la fecha de fin</p>", unsafe_allow_html=True)
                 return None, None, None
             
-            st.markdown("**Departamentos**")
+            st.markdown("**Departamentos**", help="Filtre por departamentos específicos")
             departamentos_filtro = st.multiselect(
                 "Seleccionar departamentos",
                 options=DEPARTMENTS,
@@ -292,20 +340,21 @@ def render_sidebar():
             )
         
         with st.expander("⚙️ Metas", expanded=False):
-            nom_target = st.slider("Meta NOM-035 (%)", 50, 100, 90, help="Establezca la meta de cumplimiento NOM-035")
-            lean_target = st.slider("Meta LEAN (%)", 50, 100, 80, help="Establezca la meta de adopción LEAN")
-            wellbeing_target = st.slider("Meta Bienestar (%)", 50, 100, 85, help="Establezca la meta de índice de bienestar")
-            efficiency_target = st.slider("Meta Eficiencia (%)", 50, 100, 75, help="Establezca la meta de eficiencia operativa")
+            st.markdown("**Establecer Metas**", help="Defina los objetivos para cada métrica")
+            nom_target = st.slider("Meta NOM-035 (%)", 50, 100, 90, help="Porcentaje objetivo de cumplimiento NOM-035")
+            lean_target = st.slider("Meta LEAN (%)", 50, 100, 80, help="Porcentaje objetivo de adopción LEAN")
+            wellbeing_target = st.slider("Meta Bienestar (%)", 50, 100, 85, help="Índice objetivo de bienestar organizacional")
+            efficiency_target = st.slider("Meta Eficiencia (%)", 50, 100, 75, help="Porcentaje objetivo de eficiencia operativa")
         
         st.markdown("---")
-        if st.button("🔄 Actualizar", use_container_width=True, help="Actualiza los datos y visualizaciones"):
+        if st.button("🔄 Actualizar", use_container_width=True, help="Refresca los datos y visualizaciones"):
             st.cache_data.clear()
             st.rerun()
         
         st.markdown("---")
         st.markdown("""
         <div style="text-align: center; color: #a0aec0; font-size: 0.75rem;">
-            v3.0.0<br>
+            v3.1.0<br>
             © 2025 RH Analytics
         </div>
         """, unsafe_allow_html=True)
@@ -315,14 +364,14 @@ def render_sidebar():
 # ========== HEADER ==========
 def render_header(start_date, end_date):
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem;">
         <div>
             <h1 style="margin: 0;">Sistema Integral NOM-035 & LEAN 2.0</h1>
-            <p style="color: var(--muted); font-size: 1rem; margin: 0;">
+            <p style="color: var(--muted); font-size: 1.125rem; margin: 0;">
                 Monitoreo Estratégico de Bienestar y Eficiencia
             </p>
         </div>
-        <div style="background-color: var(--light); padding: 0.5rem 1rem; border-radius: 1rem; text-align: center;">
+        <div class="card" style="padding: 0.75rem 1.5rem;">
             <div style="font-size: 0.875rem; color: var(--primary); font-weight: 500;">
                 {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}
             </div>
@@ -339,34 +388,34 @@ def kpi_card(value, title, target, icon, help_text):
     percentage = min(100, (value / target * 100)) if target != 0 else 0
     status = "✅" if value >= target else "⚠️" if value >= target - 10 else "❌"
     color = COLOR_PALETTE['success'] if value >= target else COLOR_PALETTE['warning'] if value >= target - 10 else COLOR_PALETTE['danger']
-    delta_text = f"+{delta}% sobre meta" if delta >= 0 else f"{delta}% bajo meta"
+    delta_text = f"+{delta:.1f}% sobre meta" if delta >= 0 else f"{delta:.1f}% bajo meta"
     
     st.markdown(f"""
     <div class="card" role="region" aria-label="{title}">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <div style="font-size: 0.875rem; color: var(--text); font-weight: 500;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <div style="font-size: 1rem; color: var(--text); font-weight: 600;">
                 {icon} {title}
             </div>
-            <div style="font-size: 0.875rem; color: {color};" aria-label="Estado">
+            <div style="font-size: 1.25rem; color: {color};" aria-label="Estado">
                 {status}
             </div>
         </div>
-        <div style="font-size: 1.5rem; font-weight: 600; color: {color}; margin-bottom: 0.25rem;">
-            {value}%
+        <div style="font-size: 2rem; font-weight: 700; color: {color}; margin-bottom: 0.5rem;">
+            {value:.1f}%
         </div>
-        <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem;">
+        <div style="font-size: 0.875rem; color: var(--muted); margin-bottom: 0.75rem;">
             Meta: {target}% • {delta_text}
         </div>
-        <div style="height: 0.375rem; background: #edf2f7; border-radius: 0.1875rem;">
-            <div style="width: {percentage}%; height: 0.375rem; background: {color}; border-radius: 0.1875rem;"></div>
+        <div class="progress-bar">
+            <div class="progress-bar-fill" style="width: {percentage}%; background: {color};"></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
     st.markdown(f"<span title='{help_text}'></span>", unsafe_allow_html=True)
 
 # ========== TABS ==========
-def render_nom_tab(nom_df, departamentos_filtro):
-    st.markdown("#### Cumplimiento NOM-035")
+def render_nom_tab(nom_df, departamentos_filtro, nom_target):
+    st.markdown("#### 📋 Cumplimiento NOM-035", help="Monitorea el cumplimiento de la NOM-035 en factores psicosociales")
     filtered_nom = nom_df[nom_df['Departamento'].isin(departamentos_filtro)]
     
     if filtered_nom.empty:
@@ -376,7 +425,7 @@ def render_nom_tab(nom_df, departamentos_filtro):
     nom_view1, nom_view2, nom_view3 = st.tabs(["📊 Métricas", "🔍 Mapa de Riesgo", "📈 Tendencias"])
     
     with nom_view1:
-        col1, col2 = st.columns([3, 2])
+        col1, col2 = st.columns([3, 2], gap="medium")
         with col1:
             with st.spinner("Cargando gráfico..."):
                 fig = px.bar(
@@ -386,7 +435,15 @@ def render_nom_tab(nom_df, departamentos_filtro):
                     barmode="group",
                     color_discrete_sequence=[COLOR_PALETTE['primary'], COLOR_PALETTE['secondary']],
                     labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
-                    height=400
+                    height=450,
+                    hover_data={'Evaluaciones': ':.1f', 'Capacitaciones': ':.1f'}
+                )
+                fig.add_hline(
+                    y=nom_target,
+                    line_dash="dash",
+                    line_color=COLOR_PALETTE['warning'],
+                    annotation_text="Meta",
+                    annotation_position="top right"
                 )
                 fig.update_layout(
                     plot_bgcolor='rgba(0,0,0,0)',
@@ -394,22 +451,24 @@ def render_nom_tab(nom_df, departamentos_filtro):
                     yaxis_range=[0, 100],
                     legend_title_text='Métrica',
                     xaxis_title="",
-                    margin=dict(l=20, r=20, t=40, b=20),
-                    font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                    margin=dict(l=30, r=30, t=50, b=30),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    showlegend=True,
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
                 )
                 st.plotly_chart(fig, use_container_width=True)
         
         with col2:
-            st.markdown("**📌 Resumen**")
+            st.markdown("**📌 Resumen**", help="Resumen detallado de métricas NOM-035 por departamento")
             st.dataframe(
                 filtered_nom.set_index('Departamento').style.format({
                     'Evaluaciones': '{:.1f}',
                     'Capacitaciones': '{:.1f}',
                     'Incidentes': '{:.0f}',
                     'Tendencia': '{:.2f}'
-                }),
+                }).background_gradient(cmap='RdYlGn', subset=['Evaluaciones', 'Capacitaciones']),
                 use_container_width=True,
-                height=400
+                height=450
             )
     
     with nom_view2:
@@ -420,8 +479,7 @@ def render_nom_tab(nom_df, departamentos_filtro):
                 z=z_values.T,
                 x=filtered_nom['Departamento'],
                 y=['Evaluaciones', 'Capacitaciones', 'Incidentes'],
-                colorscale='RdYlGn',
-                reversescale=True,
+                colorscale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
                 hoverongaps=False,
                 text=filtered_nom[['Evaluaciones', 'Capacitaciones', 'Incidentes']].values.T,
                 texttemplate="%{text:.1f}",
@@ -433,13 +491,21 @@ def render_nom_tab(nom_df, departamentos_filtro):
                 yaxis_title="",
                 height=500,
                 plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=50, r=50, t=50, b=50),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                margin=dict(l=50, r=50, t=60, b=50),
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_heat, use_container_width=True)
+            st.markdown("""
+            <div class="card" style="margin-top: 1rem;">
+                <p style="font-size: 0.875rem; margin: 0.5rem 0;">
+                    <strong>Interpretación:</strong> Valores altos en Evaluaciones y Capacitaciones indican buen cumplimiento, mientras que Incidentes altos señalan riesgos psicosociales.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
     
     with nom_view3:
-        col1, col2 = st.columns([3, 1])
+        col1, col2 = st.columns([3, 1], gap="medium")
         with col1:
             with st.spinner("Cargando tendencias..."):
                 fig_trend = px.bar(
@@ -447,22 +513,31 @@ def render_nom_tab(nom_df, departamentos_filtro):
                     x='Departamento',
                     y='Tendencia',
                     color='Tendencia',
-                    color_continuous_scale='RdYlGn',
+                    color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
                     range_color=[-3, 3],
                     labels={'Tendencia': 'Cambio mensual (%)'},
-                    height=400
+                    height=450,
+                    hover_data={'Tendencia': ':.2f'}
+                )
+                fig_trend.add_hline(
+                    y=0,
+                    line_dash="dash",
+                    line_color=COLOR_PALETTE['muted'],
+                    annotation_text="Neutral",
+                    annotation_position="top right"
                 )
                 fig_trend.update_layout(
                     title="Tendencia de Cumplimiento",
                     yaxis_title="Cambio (%)",
                     plot_bgcolor='rgba(0,0,0,0)',
-                    margin=dict(l=20, r=20, t=40, b=20),
-                    font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                    margin=dict(l=30, r=30, t=50, b=30),
+                    font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                    hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
                 )
                 st.plotly_chart(fig_trend, use_container_width=True)
         
         with col2:
-            st.markdown("**📊 Interpretación**")
+            st.markdown("**📊 Interpretación**", help="Guía para interpretar las tendencias de cumplimiento")
             st.markdown("""
             <div class="card">
                 <p style="font-size: 0.875rem; margin: 0.5rem 0;">
@@ -477,15 +552,15 @@ def render_nom_tab(nom_df, departamentos_filtro):
             </div>
             """, unsafe_allow_html=True)
 
-def render_lean_tab(lean_df, departamentos_filtro):
-    st.markdown("#### Progreso LEAN 2.0")
+def render_lean_tab(lean_df, departamentos_filtro, lean_target):
+    st.markdown("#### 🔄 Progreso LEAN 2.0", help="Seguimiento de métricas LEAN para optimización de procesos")
     filtered_lean = lean_df[lean_df['Departamento'].isin(departamentos_filtro)]
     
     if filtered_lean.empty:
         st.warning("⚠️ No hay datos disponibles para los departamentos seleccionados", icon="⚠️")
         return
     
-    col1, col2 = st.columns([3, 2])
+    col1, col2 = st.columns([3, 2], gap="medium")
     with col1:
         with st.spinner("Cargando gráfico de eficiencia..."):
             fig_lean = px.bar(
@@ -493,17 +568,26 @@ def render_lean_tab(lean_df, departamentos_filtro):
                 x='Departamento',
                 y='Eficiencia',
                 color='Eficiencia',
-                color_continuous_scale='Greens',
+                color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
                 range_color=[50, 100],
                 labels={'Eficiencia': 'Eficiencia (%)'},
-                height=400
+                height=450,
+                hover_data={'Eficiencia': ':.1f'}
+            )
+            fig_lean.add_hline(
+                y=lean_target,
+                line_dash="dash",
+                line_color=COLOR_PALETTE['warning'],
+                annotation_text="Meta",
+                annotation_position="top right"
             )
             fig_lean.update_layout(
                 title="Eficiencia por Departamento",
                 yaxis_range=[0, 100],
                 plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=20, r=20, t=40, b=20),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                margin=dict(l=30, r=30, t=50, b=30),
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_lean, use_container_width=True)
         
@@ -520,18 +604,20 @@ def render_lean_tab(lean_df, departamentos_filtro):
                     'Eficiencia': 'Eficiencia (%)',
                     'Proyectos Activos': 'Proyectos Activos'
                 },
-                height=400
+                height=450,
+                hover_data={'Proyectos Activos': ':.0f'}
             )
             fig_scatter.update_layout(
                 title="Eficiencia vs Reducción de Desperdicio",
                 plot_bgcolor='rgba(0,0,0,0)',
-                margin=dict(l=20, r=20, t=40, b=20),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                margin=dict(l=30, r=30, t=50, b=30),
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
     
     with col2:
-        st.markdown("**📊 Comparación de Métricas**")
+        st.markdown("**📊 Comparación de Métricas**", help="Radar comparativo de métricas LEAN por departamento")
         with st.spinner("Cargando radar..."):
             scaler = MinMaxScaler()
             lean_radar = filtered_lean.copy()
@@ -543,17 +629,22 @@ def render_lean_tab(lean_df, departamentos_filtro):
                 row = lean_radar[lean_radar['Departamento'] == dept].iloc[0]
                 fig_radar.add_trace(go.Scatterpolar(
                     r=[row[m] for m in metrics],
-                    theta=['Eficiencia', 'Reducción', '5S', 'Kaizen'],
+                    theta=['Eficiencia', 'Reducción', '5S+2', 'Kaizen'],
                     fill='toself',
                     name=dept,
-                    line=dict(width=2)
+                    line=dict(width=2),
+                    hovertemplate=f"<b>{dept}</b><br>%{{theta}}: %{{r:.2f}}<extra></extra>"
                 ))
             fig_radar.update_layout(
-                polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
-                height=400,
+                polar=dict(
+                    radialaxis=dict(visible=True, range=[0, 1], showticklabels=False),
+                    angularaxis=dict(showticklabels=True, tickfont_size=12)
+                ),
+                height=450,
                 showlegend=True,
                 margin=dict(l=50, r=50, t=30, b=50),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_radar, use_container_width=True)
         
@@ -566,8 +657,8 @@ def render_lean_tab(lean_df, departamentos_filtro):
                 use_container_width=True
             )
 
-def render_wellbeing_tab(bienestar_df, start_date, end_date):
-    st.markdown("#### Bienestar Organizacional")
+def render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target):
+    st.markdown("#### 😊 Bienestar Organizacional", help="Indicadores de bienestar y clima laboral")
     filtered_bienestar = bienestar_df[
         (bienestar_df['Mes'].dt.date >= start_date) &
         (bienestar_df['Mes'].dt.date <= end_date)
@@ -577,14 +668,14 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date):
         st.warning("⚠️ No hay datos disponibles para el período seleccionado", icon="⚠️")
         return
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3, gap="medium")
     with col1:
         delta = filtered_bienestar['Encuestas'].iloc[-1] - filtered_bienestar['Encuestas'].iloc[0] if len(filtered_bienestar) > 1 else 0
         st.metric(
             label="Encuestas Completadas",
             value=f"{filtered_bienestar['Encuestas'].mean():.0f}%",
             delta=f"{delta:+.0f}%",
-            help="Porcentaje de encuestas completadas"
+            help="Porcentaje promedio de encuestas completadas en el período"
         )
     with col2:
         delta = filtered_bienestar['Ausentismo'].iloc[-1] - filtered_bienestar['Ausentismo'].iloc[0] if len(filtered_bienestar) > 1 else 0
@@ -593,7 +684,7 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date):
             value=f"{filtered_bienestar['Ausentismo'].iloc[-1]:.1f}%",
             delta=f"{delta:+.1f}%",
             delta_color="inverse",
-            help="Tasa de ausentismo laboral"
+            help="Tasa de ausentismo laboral en el último mes"
         )
     with col3:
         delta = filtered_bienestar['Rotación'].iloc[-1] - filtered_bienestar['Rotación'].iloc[0] if len(filtered_bienestar) > 1 else 0
@@ -602,7 +693,7 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date):
             value=f"{filtered_bienestar['Rotación'].iloc[-1]:.1f}%",
             delta=f"{delta:+.1f}%",
             delta_color="inverse",
-            help="Tasa de rotación de personal"
+            help="Tasa de rotación de personal en el último mes"
         )
     
     wellbeing_view1, wellbeing_view2 = st.tabs(["📈 Tendencias", "🔍 Correlaciones"])
@@ -620,15 +711,24 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date):
                     COLOR_PALETTE['warning']
                 ],
                 labels={'value': 'Porcentaje (%)', 'variable': 'Métrica'},
-                height=400
+                height=450,
+                hover_data={'Índice Bienestar': ':.1f', 'Ausentismo': ':.1f', 'Rotación': ':.1f'}
+            )
+            fig_bienestar.add_hline(
+                y=wellbeing_target,
+                line_dash="dash",
+                line_color=COLOR_PALETTE['warning'],
+                annotation_text="Meta Bienestar",
+                annotation_position="top right"
             )
             fig_bienestar.update_layout(
                 title="Evolución Mensual",
                 yaxis_range=[0, 100],
                 plot_bgcolor='rgba(0,0,0,0)',
                 legend_title="Métrica",
-                margin=dict(l=20, r=20, t=40, b=20),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                margin=dict(l=30, r=30, t=50, b=30),
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_bienestar, use_container_width=True)
     
@@ -637,57 +737,73 @@ def render_wellbeing_tab(bienestar_df, start_date, end_date):
             corr_matrix = filtered_bienestar[['Índice Bienestar', 'Ausentismo', 'Rotación', 'Encuestas']].corr()
             fig_corr = px.imshow(
                 corr_matrix,
-                text_auto=True,
-                color_continuous_scale='RdYlGn',
+                text_auto='.2f',
+                color_continuous_scale=[[0, COLOR_PALETTE['danger']], [0.5, COLOR_PALETTE['warning']], [1, COLOR_PALETTE['success']]],
                 range_color=[-1, 1],
                 labels=dict(x="", y="", color="Correlación"),
-                height=400
+                height=450
             )
             fig_corr.update_layout(
                 title="Matriz de Correlación",
-                margin=dict(l=50, r=50, t=50, b=50),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                margin=dict(l=50, r=50, t=60, b=50),
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_corr, use_container_width=True)
+            st.markdown("""
+            <div class="card" style="margin-top: 1rem;">
+                <p style="font-size: 0.875rem; margin: 0.5rem 0;">
+                    <strong>Interpretación:</strong> Valores cercanos a 1 indican correlación positiva fuerte, -1 indica correlación negativa, y 0 indica poca o ninguna correlación.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
 def render_action_plans_tab(departamentos_filtro, start_date, end_date):
-    st.markdown("#### Planes de Acción")
+    st.markdown("#### 📝 Planes de Acción", help="Gestión de planes de acción para abordar problemas identificados")
     filtered_plans = st.session_state.action_plans_df[
         (st.session_state.action_plans_df['Departamento'].isin(departamentos_filtro)) &
         (st.session_state.action_plans_df['Plazo'] >= start_date) &
         (st.session_state.action_plans_df['Plazo'] <= end_date)
     ]
     
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([3, 1], gap="medium")
     with col1:
-        st.markdown("**📌 Planes Registrados**")
+        st.markdown("**📌 Planes Registrados**", help="Lista de planes de acción activos")
         if filtered_plans.empty:
-            st.info("No hay planes de acción para los filtros seleccionados", icon="ℹ️")
+            st.info("ℹ️ No hay planes de acción para los filtros seleccionados", icon="ℹ️")
         else:
+            def progress_bar(row):
+                color = COLOR_PALETTE['success'] if row['% Avance'] == 100 else COLOR_PALETTE['warning'] if row['% Avance'] > 0 else COLOR_PALETTE['danger']
+                return f'<div class="progress-bar"><div class="progress-bar-fill" style="width: {row["% Avance"]}%; background: {color};"></div></div>'
+            
+            styled_plans = filtered_plans.copy()
+            styled_plans['Progreso'] = styled_plans.apply(progress_bar, axis=1)
             st.dataframe(
-                filtered_plans.style.apply(
+                styled_plans.style.apply(
                     lambda x: [
                         f"background-color: {COLOR_PALETTE['success']}; color: white" if v == 'Completado'
                         else f"background-color: {COLOR_PALETTE['warning']}" if v == 'En progreso'
                         else f"background-color: {COLOR_PALETTE['danger']}; color: white"
                         for v in x
                     ], subset=['Estado']
-                ).bar(
-                    subset=['% Avance'],
-                    color=COLOR_PALETTE['secondary'],
-                    vmin=0,
-                    vmax=100
                 ).format({
                     'Plazo': lambda x: x.strftime('%d/%m/%Y'),
                     '% Avance': '{:.0f}%'
-                }),
+                }).set_properties(**{'Progreso': 'width: 100px'}),
                 use_container_width=True,
                 hide_index=True,
-                height=400
+                column_config={
+                    'Progreso': st.column_config.TextColumn(
+                        'Progreso',
+                        help="Barra de progreso del plan de acción",
+                        width="small"
+                    )
+                },
+                height=450
             )
     
     with col2:
-        st.markdown("**📊 Resumen por Estado**")
+        st.markdown("**📊 Resumen por Estado**", help="Distribución de planes por estado")
         if not filtered_plans.empty:
             status_summary = filtered_plans['Estado'].value_counts().reset_index()
             fig_status = px.pie(
@@ -700,16 +816,18 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                     'En progreso': COLOR_PALETTE['warning'],
                     'Pendiente': COLOR_PALETTE['danger']
                 },
-                height=300
+                height=300,
+                hover_data={'count': True}
             )
             fig_status.update_layout(
                 showlegend=True,
-                margin=dict(l=20, r=20, t=20, b=20),
-                font=dict(family="Inter", size=12, color=COLOR_PALETTE['text'])
+                margin=dict(l=20, r=20, t=30, b=20),
+                font=dict(family="Inter", size=13, color=COLOR_PALETTE['text']),
+                hoverlabel=dict(bgcolor=COLOR_PALETTE['card'], font_size=12)
             )
             st.plotly_chart(fig_status, use_container_width=True)
         
-        st.markdown("**📅 Vencimientos Próximos**")
+        st.markdown("**📅 Vencimientos Próximos**", help="Planes con plazos cercanos o vencidos")
         today = date.today()
         upcoming = filtered_plans[filtered_plans['Plazo'] <= today + timedelta(days=30)]
         if not upcoming.empty:
@@ -719,31 +837,33 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                 text = f"Vence en {days_left} días" if days_left > 0 else f"Vencido hace {-days_left} días"
                 st.markdown(f"""
                 <div class="card">
-                    <div style="font-weight: 500;">{row['Departamento']}</div>
-                    <div style="font-size: 0.75rem; color: var(--muted);">{row['Problema'][:30]}...</div>
-                    <div style="font-size: 0.75rem; color: {color}; font-weight: 500;">{text}</div>
+                    <div style="font-weight: 600;">{row['Departamento']}</div>
+                    <div style="font-size: 0.875rem; color: var(--muted);">{row['Problema'][:30]}...</div>
+                    <div style="font-size: 0.875rem; color: {color}; font-weight: 500;">{text}</div>
                 </div>
                 """, unsafe_allow_html=True)
         else:
-            st.info("No hay vencimientos próximos", icon="ℹ️")
+            st.info("ℹ️ No hay vencimientos próximos", icon="ℹ️")
     
     with st.expander("➕ Nuevo Plan de Acción", expanded=False):
         with st.form("nuevo_plan_form", clear_on_submit=True):
-            col1, col2 = st.columns(2)
+            st.markdown("**Registrar Nuevo Plan**", help="Complete los campos para añadir un nuevo plan de acción")
+            col1, col2 = st.columns(2, gap="medium")
             with col1:
-                dept = st.selectbox("Departamento", DEPARTMENTS, help="Seleccione el departamento")
-                problema = st.text_area("Problema", max_chars=200, help="Describa el problema identificado")
-                prioridad = st.selectbox("Prioridad", ["Alta", "Media", "Baja"], help="Seleccione la prioridad")
+                dept = st.selectbox("Departamento", DEPARTMENTS, help="Departamento responsable del plan")
+                problema = st.text_area("Problema", max_chars=200, help="Descripción del problema identificado (máx. 200 caracteres)")
+                prioridad = st.selectbox("Prioridad", ["Alta", "Media", "Baja"], help="Nivel de prioridad del plan")
             with col2:
-                accion = st.text_area("Acción", max_chars=200, help="Describa la acción propuesta")
-                responsable = st.text_input("Responsable", help="Nombre del responsable")
+                accion = st.text_area("Acción", max_chars=200, help="Acción propuesta para resolver el problema (máx. 200 caracteres)")
+                responsable = st.text_input("Responsable", help="Nombre de la persona responsable (solo letras y espacios)")
                 plazo = st.date_input(
                     "Plazo",
                     min_value=today,
                     value=today + timedelta(days=30),
-                    help="Fecha límite para el plan"
+                    help="Fecha límite para completar el plan",
+                    format="DD/MM/YYYY"
                 )
-                avance = st.slider("% Avance", 0, 100, 0, help="Porcentaje de avance actual")
+                avance = st.slider("% Avance", 0, 100, 0, help="Porcentaje de avance actual del plan")
             
             submitted = st.form_submit_button("💾 Guardar", use_container_width=True)
             
@@ -751,12 +871,18 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                 errors = []
                 if not problema:
                     errors.append("El campo Problema es obligatorio")
+                if len(problema) > 200:
+                    errors.append("El Problema no puede exceder 200 caracteres")
                 if not accion:
                     errors.append("El campo Acción es obligatorio")
+                if len(accion) > 200:
+                    errors.append("La Acción no puede exceder 200 caracteres")
                 if not responsable:
                     errors.append("El campo Responsable es obligatorio")
                 if not re.match(r'^[A-Za-z\s]+$', responsable):
                     errors.append("El Responsable debe contener solo letras y espacios")
+                if plazo < today:
+                    errors.append("El Plazo no puede ser anterior a hoy")
                 
                 if errors:
                     for error in errors:
@@ -774,30 +900,32 @@ def render_action_plans_tab(departamentos_filtro, start_date, end_date):
                         '% Avance': avance
                     }])
                     st.session_state.action_plans_df = pd.concat([st.session_state.action_plans_df, new_plan], ignore_index=True)
-                    st.success("✅ Plan registrado correctamente")
+                    st.success("✅ Plan registrado correctamente", icon="✅")
                     st.rerun()
 
 # ========== EXPORT AND REPORTING ==========
 def render_export_section(nom_df, lean_df, bienestar_df):
     st.markdown("---")
-    st.markdown("#### Exportar y Reportes")
+    st.markdown("#### 📤 Exportar y Reportes", help="Opciones para exportar datos y generar reportes")
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3, gap="medium")
     
     with col1:
         with st.expander("📄 Generar Reporte PDF", expanded=False):
+            st.markdown("**Configurar Reporte**", help="Personalice el contenido del reporte PDF")
             report_type = st.selectbox(
                 "Tipo de reporte",
-                ["Completo", "Resumido", "Solo NOM-035", "Solo LEAN"],
-                help="Seleccione el tipo de reporte"
+                ["Completo", "Resumido", "Solo NOM-035", "Solo LEAN", "Solo Bienestar"],
+                help="Seleccione el tipo de reporte a generar"
             )
+            include_charts = st.checkbox("Incluir gráficos", value=True, help="Incluye visualizaciones en el reporte")
             if st.button("🖨️ Generar", use_container_width=True):
                 with st.spinner("Generando reporte..."):
                     # Simulate PDF generation
-                    st.success("✅ Reporte generado")
+                    st.success("✅ Reporte generado", icon="✅")
                     st.download_button(
                         label="📥 Descargar PDF",
-                        data=io.BytesIO(b"Simulated PDF content"),
+                        data=io.BytesIO(f"Reporte {report_type} con {'gráficos' if include_charts else 'sin gráficos'}".encode()),
                         file_name=f"Reporte_{report_type}_{datetime.now().strftime('%Y%m%d')}.pdf",
                         mime="application/pdf",
                         use_container_width=True
@@ -805,19 +933,23 @@ def render_export_section(nom_df, lean_df, bienestar_df):
     
     with col2:
         with st.expander("📧 Enviar por Correo", expanded=False):
-            email = st.text_input("Correo", placeholder="usuario@empresa.com", help="Ingrese el correo del destinatario")
+            st.markdown("**Enviar Reporte**", help="Envíe el reporte a un correo electrónico")
+            email = st.text_input("Correo", placeholder="usuario@empresa.com", help="Correo electrónico del destinatario")
+            subject = st.text_input("Asunto", value="Reporte NOM-035 & LEAN", help="Asunto del correo")
             if st.button("📤 Enviar", use_container_width=True):
                 if not email:
                     st.markdown("<p class='error-message'>El campo Correo es obligatorio</p>", unsafe_allow_html=True)
                 elif not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', email):
                     st.markdown("<p class='error-message'>Ingrese un correo válido</p>", unsafe_allow_html=True)
+                elif not subject:
+                    st.markdown("<p class='error-message'>El campo Asunto es obligatorio</p>", unsafe_allow_html=True)
                 else:
                     with st.spinner("Enviando correo..."):
                         # Simulate email sending
-                        st.success("✅ Correo enviado")
+                        st.success("✅ Correo enviado", icon="✅")
                         st.download_button(
                             label="📥 Descargar Contenido",
-                            data=f"To: {email}\nSubject: Reporte NOM-035 & LEAN\n\nReporte enviado el {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+                            data=f"To: {email}\nSubject: {subject}\n\nReporte enviado el {datetime.now().strftime('%d/%m/%Y %H:%M')}",
                             file_name=f"Correo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
                             mime="text/plain",
                             use_container_width=True
@@ -825,12 +957,13 @@ def render_export_section(nom_df, lean_df, bienestar_df):
     
     with col3:
         with st.expander("📊 Exportar Datos", expanded=False):
-            export_format = st.radio("Formato", ["CSV", "Excel", "JSON"], horizontal=True, help="Seleccione el formato de exportación")
+            st.markdown("**Exportar Datos**", help="Descargue los datos en el formato deseado")
+            export_format = st.radio("Formato", ["CSV", "Excel", "JSON"], horizontal=True, help="Formato de exportación")
             data_options = st.multiselect(
                 "Datos",
                 ["NOM-035", "LEAN", "Bienestar", "Planes de Acción"],
                 default=["NOM-035", "LEAN", "Bienestar"],
-                help="Seleccione los datos a exportar"
+                help="Seleccione los conjuntos de datos a exportar"
             )
             if st.button("💾 Descargar", use_container_width=True):
                 if not data_options:
@@ -866,23 +999,23 @@ def render_export_section(nom_df, lean_df, bienestar_df):
                                 mime = "application/json"
                                 ext = "json"
                             
-                            st.success(f"✅ Datos exportados como {export_format}")
+                            st.success(f"✅ Datos exportados como {export_format}", icon="✅")
                             st.download_button(
                                 label=f"📥 Descargar .{ext}",
                                 data=data,
-                                file_name=f"nom_lean_data.{ext}",
+                                file_name=f"nom_lean_data_{datetime.now().strftime('%Y%m%d')}.{ext}",
                                 mime=mime,
                                 use_container_width=True
                             )
                         except Exception as e:
-                            st.error(f"Error al exportar datos: {e}")
+                            st.error(f"Error al exportar datos: {e}", icon="🚨")
 
 # ========== MAIN FUNCTION ==========
 def main():
     try:
         sidebar_data = render_sidebar()
-        # Check if sidebar_data is None or contains None values for critical components
         if sidebar_data is None or sidebar_data[0] is None or sidebar_data[1] is None or len(sidebar_data[2]) == 0:
+            st.warning("⚠️ Por favor, configure los filtros en la barra lateral para continuar", icon="⚠️")
             return
         
         start_date, end_date, departamentos_filtro, targets = sidebar_data
@@ -890,41 +1023,70 @@ def main():
         
         render_header(start_date, end_date)
         
-        st.markdown("### Indicadores Clave")
-        cols = st.columns(4)
+        st.markdown("### Indicadores Clave", help="Resumen de métricas clave para NOM-035, LEAN y bienestar")
+        cols = st.columns(4, gap="medium")
         kpis = [
-            (round(nom_df[nom_df['Departamento'].isin(departamentos_filtro)]['Evaluaciones'].mean()), "Cumplimiento NOM-035", nom_target, "📋", "Porcentaje de cumplimiento con NOM-035"),
-            (round(lean_df[lean_df['Departamento'].isin(departamentos_filtro)]['Eficiencia'].mean()), "Adopción LEAN", lean_target, "🔄", "Nivel de implementación de LEAN"),
-            (round(bienestar_df[(bienestar_df['Mes'].dt.date >= start_date) & (bienestar_df['Mes'].dt.date <= end_date)]['Índice Bienestar'].mean()), "Índice Bienestar", wellbeing_target, "😊", "Indicador de bienestar organizacional"),
-            (round(lean_df[lean_df['Departamento'].isin(departamentos_filtro)]['Eficiencia'].mean()), "Eficiencia Operativa", efficiency_target, "⚙️", "Eficiencia general de procesos")
+            (
+                nom_df[nom_df['Departamento'].isin(departamentos_filtro)]['Evaluaciones'].mean(),
+                "Cumplimiento NOM-035",
+                nom_target,
+                "📋",
+                "Porcentaje promedio de cumplimiento con NOM-035 en los departamentos seleccionados"
+            ),
+            (
+                lean_df[lean_df['Departamento'].isin(departamentos_filtro)]['Eficiencia'].mean(),
+                "Adopción LEAN",
+                lean_target,
+                "🔄",
+                "Nivel promedio de implementación de prácticas LEAN"
+            ),
+            (
+                bienestar_df[(bienestar_df['Mes'].dt.date >= start_date) & (bienestar_df['Mes'].dt.date <= end_date)]['Índice Bienestar'].mean(),
+                "Índice Bienestar",
+                wellbeing_target,
+                "😊",
+                "Índice promedio de bienestar organizacional en el período seleccionado"
+            ),
+            (
+                lean_df[lean_df['Departamento'].isin(departamentos_filtro)]['Eficiencia'].mean(),
+                "Eficiencia Operativa",
+                efficiency_target,
+                "⚙️",
+                "Eficiencia promedio de procesos operativos"
+            )
         ]
         for i, (value, title, target, icon, help_text) in enumerate(kpis):
             with cols[i]:
                 kpi_card(value, title, target, icon, help_text)
         
-        tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN", "😊 Bienestar", "📝 Planes"])
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "📋 NOM-035",
+            "🔄 LEAN",
+            "😊 Bienestar",
+            "📝 Planes de Acción"
+        ])
         
         with tab1:
-            render_nom_tab(nom_df, departamentos_filtro)
+            render_nom_tab(nom_df, departamentos_filtro, nom_target)
         with tab2:
-            render_lean_tab(lean_df, departamentos_filtro)
+            render_lean_tab(lean_df, departamentos_filtro, lean_target)
         with tab3:
-            render_wellbeing_tab(bienestar_df, start_date, end_date)
+            render_wellbeing_tab(bienestar_df, start_date, end_date, wellbeing_target)
         with tab4:
             render_action_plans_tab(departamentos_filtro, start_date, end_date)
         
         render_export_section(nom_df, lean_df, bienestar_df)
         
         st.markdown("""
-        <hr>
-        <div style="text-align: center; color: var(--muted); font-size: 0.75rem; padding: 1rem 0;">
-            Sistema Integral NOM-035 & LEAN 2.0 • Versión 3.0.0<br>
+        <hr style="border-color: var(--border);">
+        <div style="text-align: center; color: var(--muted); font-size: 0.875rem; padding: 1.5rem 0;">
+            Sistema Integral NOM-035 & LEAN 2.0 • Versión 3.1.0<br>
             © 2025 Departamento de RH
         </div>
         """, unsafe_allow_html=True)
     
     except Exception as e:
-        st.error(f"Error en el dashboard: {e}")
+        st.error(f"Error en el dashboard: {e}", icon="🚨")
 
 if __name__ == "__main__":
     main()
