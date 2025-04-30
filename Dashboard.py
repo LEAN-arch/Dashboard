@@ -9,6 +9,14 @@ from sklearn.preprocessing import MinMaxScaler
 import warnings
 warnings.filterwarnings('ignore')
 
+# ========== PAGE CONFIGURATION - MUST BE FIRST STREAMLIT COMMAND ==========
+st.set_page_config(
+    page_title="Sistema Integral NOM-035 & LEAN 2.0",
+    layout="wide",
+    page_icon="📊",
+    initial_sidebar_state="expanded"
+)
+
 # ========== CONSTANTS AND CONFIGURATION ==========
 DEPARTMENTS = ['Producción', 'Calidad', 'Logística', 'Administración', 'Ventas', 'RH', 'TI']
 
@@ -36,14 +44,6 @@ html, body, [class*="css"] {
 </style>
 """
 st.markdown(FONT_CSS, unsafe_allow_html=True)
-
-# ========== PAGE CONFIGURATION ==========
-st.set_page_config(
-    page_title="Sistema Integral NOM-035 & LEAN 2.0",
-    layout="wide",
-    page_icon="📊",
-    initial_sidebar_state="expanded"
-)
 
 # Custom CSS for professional styling
 st.markdown(f"""
@@ -98,6 +98,8 @@ st.markdown(f"""
     }}
 </style>
 """, unsafe_allow_html=True)
+
+# [Rest of your code remains exactly the same...]
 
 # ========== DATA LOADING AND PROCESSING ==========
 @st.cache_data(ttl=600)
