@@ -379,7 +379,7 @@ def render_sidebar():
         st.markdown("""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
             <span style="font-size: 1.5rem;">📊</span>
-            <h2 style="margin: 0; color: white;">NOM-035 & LEAN</h2>
+            <h2 style="margin: 0; color: white;">NOM-035 & LEAN 2.0</h2>
         </div>
         """, unsafe_allow_html=True)
         
@@ -469,7 +469,7 @@ def render_header(start_date, end_date):
     st.markdown(f"""
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
         <div>
-            <h1 style="margin: 0;">Sistema Integral NOM-035 & LEAN 2.0</h1>
+            <h1 style="margin: 0;">Sistema Integral NOM-035-STPS-2018 & LEAN 2.0</h1>
             <p style="color: var(--muted); font-size: 1rem; margin: 0;">
                 Monitoreo Estratégico (2022-2025)
             </p>
@@ -1203,7 +1203,7 @@ def render_export_section(nom_df, lean_df, bienestar_df):
         with st.expander("📊 Exportar Datos", expanded=False):
             st.markdown("**Exportar Datos**")
             export_format = st.radio("Formato", ["CSV", "Excel", "JSON"], horizontal=True)
-            data_options = st.multiselect("Datos", ["NOM-035", "LEAN", "Bienestar", "Planes de Acción"], default=["NOM-035", "LEAN", "Bienestar"])
+            data_options = st.multiselect("Datos", ["NOM-035", "LEAN 2.0", "Bienestar", "Planes de Acción"], default=["NOM-035", "LEAN 2.0", "Bienestar"])
             if st.button("💾 Descargar", use_container_width=True):
                 if not data_options:
                     st.markdown("<p class='error-message'>Seleccione al menos un tipo de datos</p>", unsafe_allow_html=True)
@@ -1285,7 +1285,7 @@ def main():
             ),
             (
                 filtered_lean['Eficiencia'].mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0,
-                "Adopción LEAN",
+                "Adopción LEAN 2.0",
                 lean_target,
                 "🔄",
                 filtered_lean['Eficiencia'].mean() - filtered_lean.groupby('Departamento')['Eficiencia'].mean().shift(1).mean() if not filtered_lean.empty and 'Eficiencia' in filtered_lean.columns else 0
@@ -1309,7 +1309,7 @@ def main():
             with cols[i]:
                 kpi_card(value, title, target, icon, delta)
         
-        tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN", "😊 Bienestar", "📝 Planes de Acción"])
+        tab1, tab2, tab3, tab4 = st.tabs(["📋 NOM-035", "🔄 LEAN 2.0", "😊 Bienestar", "📝 Planes de Acción"])
         
         with tab1:
             render_nom_tab(nom_df, departamentos_filtro, nom_target, start_date, end_date, nom_metrics)
