@@ -384,7 +384,7 @@ def render_sidebar():
         """, unsafe_allow_html=True)
         
         st.markdown("---")
-        
+        st.sidebar.image("assets/FOBO2.png", width=100)
         with st.expander("🔍 Filtros", expanded=True):
             st.markdown("**Período**")
             col1, col2 = st.columns(2)
