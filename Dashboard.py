@@ -466,6 +466,7 @@ def render_sidebar():
 # ========== HEADER ==========
 def render_header(start_date, end_date):
     logger.info("Rendering header")
+    st.image("assets/FOBO2.png", width=100)  # Added image
     st.markdown(f"""
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
         <div>
