@@ -376,7 +376,6 @@ def filter_dataframe(df, departamentos_filtro, start_date, end_date, date_column
 def render_sidebar():
     with st.sidebar:
         logger.info("Rendering sidebar")
-        st.image("assets/FOBO2.png", width=100)
         st.markdown("""
         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
             <span style="font-size: 1.5rem;">📊</span>
